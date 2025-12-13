@@ -571,9 +571,18 @@ function renderDeckAndDiscard() {
     elements.discardTop.appendChild(discardCard);
 
     // Disable/enable based on turn and phase
-    const canDraw = gameState.isMyTurn && gameState.phase === 'draw';
-    elements.deckPile.classList.toggle('disabled', !canDraw);
-    elements.discardPile.classList.toggle('disabled', !canDraw);
+    // Extra safety: check we're not in rearrange mode
+    const canDraw = gameState.isMyTurn && gameState.phase === 'draw' && !isRearrangeMode;
+    
+    // Force-remove disabled class first, then add if needed
+    // This ensures no stale state
+    elements.deckPile.classList.remove('disabled');
+    elements.discardPile.classList.remove('disabled');
+    
+    if (!canDraw) {
+        elements.deckPile.classList.add('disabled');
+        elements.discardPile.classList.add('disabled');
+    }
 }
 
 // Render player's hand
@@ -667,7 +676,26 @@ function updateActionButtons() {
 
 // Handle draw card
 async function handleDraw(source) {
-    if (!gameState?.isMyTurn || gameState?.phase !== 'draw') {
+    // Extra safety check - if we're still in rearrange mode somehow, exit it
+    if (isRearrangeMode) {
+        console.warn('Draw attempted while in rearrange mode - exiting rearrange mode');
+        exitRearrangeMode();
+    }
+    
+    if (!gameState) {
+        console.warn('Draw attempted with no game state');
+        showToast('Game not ready', 'warning');
+        return;
+    }
+    
+    if (!gameState.isMyTurn) {
+        console.log('Not my turn, cannot draw');
+        return;
+    }
+    
+    if (gameState.phase !== 'draw') {
+        console.log('Phase is not draw:', gameState.phase);
+        showToast('You already drew a card this turn', 'info');
         return;
     }
 
@@ -827,6 +855,10 @@ function enterRearrangeMode() {
     elements.meldsArea.classList.add('rearrange-mode');
     document.body.classList.add('rearrange-mode-active');
     
+    // Disable deck/discard during rearrange mode
+    elements.deckPile?.classList.add('disabled');
+    elements.discardPile?.classList.add('disabled');
+    
     showToast('Rearrange mode: Drag cards between melds freely!', 'info');
     
     renderRearrangeMelds();
@@ -839,11 +871,20 @@ function exitRearrangeMode() {
     proposedMelds = [];
     originalMelds = [];
     cardsUsedFromHand = [];
+    currentDragData = null; // Clear any lingering drag data
     
     elements.actionBar.classList.remove('hidden');
     elements.rearrangeActionBar.classList.add('hidden');
     elements.meldsArea?.classList.remove('rearrange-mode');
     document.body.classList.remove('rearrange-mode-active');
+    
+    // Ensure deck/discard piles are reset to correct state
+    // This fixes a bug where piles could remain disabled after rearrangement
+    if (gameState) {
+        const canDraw = gameState.isMyTurn && gameState.phase === 'draw';
+        elements.deckPile?.classList.toggle('disabled', !canDraw);
+        elements.discardPile?.classList.toggle('disabled', !canDraw);
+    }
 }
 
 // Cancel rearrange mode

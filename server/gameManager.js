@@ -95,7 +95,290 @@ class GameManager {
         return melds;
     }
 
-    // Auto-play for bot players
+    // Check if a card can be added to an existing meld
+    canAddToMeld(card, meld) {
+        // Try adding at start
+        const withStart = [card, ...meld.cards];
+        if (isValidMeld(withStart)) {
+            return { position: 'start', valid: true };
+        }
+        
+        // Try adding at end
+        const withEnd = [...meld.cards, card];
+        if (isValidMeld(withEnd)) {
+            return { position: 'end', valid: true };
+        }
+        
+        return { valid: false };
+    }
+
+    // Check if the discard card is useful for the bot
+    isDiscardCardUseful(discardCard, hand, melds) {
+        if (!discardCard) return false;
+        
+        // Check if it can extend an existing meld
+        for (const meld of melds) {
+            if (this.canAddToMeld(discardCard, meld).valid) {
+                return true;
+            }
+        }
+        
+        // Check if it helps form a new meld with hand cards
+        const testHand = [...hand, discardCard];
+        const possibleMelds = this.findPossibleMelds(testHand);
+        const currentMelds = this.findPossibleMelds(hand);
+        
+        // If adding this card creates more melds, it's useful
+        return possibleMelds.length > currentMelds.length;
+    }
+
+    // Find the best card to discard (one that's least useful)
+    findBestDiscard(hand, melds) {
+        if (hand.length === 0) return null;
+        
+        // Score each card by how useful it is
+        const cardScores = hand.map(card => {
+            let score = card.value; // Base score is card value (higher = worse to keep)
+            
+            // Check if card can extend a meld on table
+            for (const meld of melds) {
+                if (this.canAddToMeld(card, meld).valid) {
+                    score -= 20; // Very useful, don't discard
+                }
+            }
+            
+            // Check if card is part of a potential meld in hand
+            const handWithoutCard = hand.filter(c => c.id !== card.id);
+            const meldsWithCard = this.findPossibleMelds(hand);
+            const meldsWithoutCard = this.findPossibleMelds(handWithoutCard);
+            
+            if (meldsWithCard.length > meldsWithoutCard.length) {
+                score -= 15; // Part of a meld, don't discard
+            }
+            
+            // Check for partial melds (2 cards that could become 3)
+            const sameRank = hand.filter(c => c.rank === card.rank && c.id !== card.id);
+            const sameSuit = hand.filter(c => c.suit === card.suit && c.id !== card.id);
+            
+            if (sameRank.length >= 1) {
+                score -= 5; // Potential set
+            }
+            
+            // Check for consecutive cards in same suit
+            const consecutive = sameSuit.filter(c => 
+                Math.abs(c.value - card.value) === 1
+            );
+            if (consecutive.length >= 1) {
+                score -= 5; // Potential run
+            }
+            
+            return { card, score };
+        });
+        
+        // Sort by score descending (highest score = best to discard)
+        cardScores.sort((a, b) => b.score - a.score);
+        return cardScores[0].card;
+    }
+
+    // ========================================
+    // FULL TABLE REARRANGEMENT FOR BOTS
+    // ========================================
+
+    // Find all possible runs in a set of cards
+    findAllRuns(cards) {
+        const runs = [];
+        
+        // Group by suit
+        const bySuit = {};
+        cards.forEach(card => {
+            if (!bySuit[card.suit]) bySuit[card.suit] = [];
+            bySuit[card.suit].push(card);
+        });
+        
+        // Find runs in each suit
+        for (const suit of Object.keys(bySuit)) {
+            const suitCards = bySuit[suit].sort((a, b) => a.value - b.value);
+            
+            // Find all possible consecutive sequences of 3+
+            for (let start = 0; start < suitCards.length; start++) {
+                let run = [suitCards[start]];
+                
+                for (let i = start + 1; i < suitCards.length; i++) {
+                    if (suitCards[i].value === run[run.length - 1].value + 1) {
+                        run.push(suitCards[i]);
+                        if (run.length >= 3) {
+                            runs.push([...run]);
+                        }
+                    } else if (suitCards[i].value !== run[run.length - 1].value) {
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return runs;
+    }
+
+    // Find all possible sets in a set of cards
+    findAllSets(cards) {
+        const sets = [];
+        
+        // Group by rank
+        const byRank = {};
+        cards.forEach(card => {
+            if (!byRank[card.rank]) byRank[card.rank] = [];
+            byRank[card.rank].push(card);
+        });
+        
+        // Find sets of 3 or 4
+        for (const rank of Object.keys(byRank)) {
+            const rankCards = byRank[rank];
+            if (rankCards.length >= 3) {
+                // Add set of 3
+                sets.push(rankCards.slice(0, 3));
+                // Add set of 4 if possible
+                if (rankCards.length >= 4) {
+                    sets.push(rankCards.slice(0, 4));
+                }
+            }
+        }
+        
+        return sets;
+    }
+
+    // Try to find a valid arrangement of cards into melds
+    // Returns { success: boolean, melds: array, unusedCards: array }
+    findValidArrangement(cards, requiredCardIds = new Set()) {
+        // Find all possible melds
+        const allRuns = this.findAllRuns(cards);
+        const allSets = this.findAllSets(cards);
+        const allMelds = [...allRuns, ...allSets];
+        
+        if (allMelds.length === 0) {
+            return { success: false, melds: [], unusedCards: cards };
+        }
+        
+        // Try to find a combination that uses all required cards
+        const bestResult = this.findBestMeldCombination(cards, allMelds, requiredCardIds);
+        
+        return bestResult;
+    }
+
+    // Recursive function to find the best combination of melds
+    findBestMeldCombination(availableCards, possibleMelds, requiredCardIds, currentMelds = [], depth = 0) {
+        // Limit recursion depth for performance
+        if (depth > 10) {
+            const usedIds = new Set(currentMelds.flatMap(m => m.map(c => c.id)));
+            const unusedCards = availableCards.filter(c => !usedIds.has(c.id));
+            const coversRequired = [...requiredCardIds].every(id => usedIds.has(id));
+            return {
+                success: coversRequired,
+                melds: currentMelds,
+                unusedCards,
+                handCardsUsed: currentMelds.flatMap(m => m).filter(c => !requiredCardIds.has(c.id)).length
+            };
+        }
+
+        const usedIds = new Set(currentMelds.flatMap(m => m.map(c => c.id)));
+        const unusedCards = availableCards.filter(c => !usedIds.has(c.id));
+        
+        // Check if we've covered all required cards
+        const coversRequired = [...requiredCardIds].every(id => usedIds.has(id));
+        
+        // Filter melds that don't conflict with already used cards
+        const validMelds = possibleMelds.filter(meld => 
+            meld.every(card => !usedIds.has(card.id))
+        );
+        
+        if (validMelds.length === 0) {
+            return {
+                success: coversRequired,
+                melds: currentMelds,
+                unusedCards,
+                handCardsUsed: currentMelds.flatMap(m => m).filter(c => !requiredCardIds.has(c.id)).length
+            };
+        }
+        
+        // Try adding each possible meld and recurse
+        let bestResult = {
+            success: coversRequired,
+            melds: currentMelds,
+            unusedCards,
+            handCardsUsed: currentMelds.flatMap(m => m).filter(c => !requiredCardIds.has(c.id)).length
+        };
+        
+        for (const meld of validMelds) {
+            const newCurrentMelds = [...currentMelds, meld];
+            const result = this.findBestMeldCombination(
+                availableCards, 
+                possibleMelds, 
+                requiredCardIds, 
+                newCurrentMelds,
+                depth + 1
+            );
+            
+            // Prefer results that: 1) cover required cards, 2) use more hand cards
+            if (result.success && (!bestResult.success || result.handCardsUsed > bestResult.handCardsUsed)) {
+                bestResult = result;
+            } else if (!bestResult.success && result.success) {
+                bestResult = result;
+            }
+        }
+        
+        return bestResult;
+    }
+
+    // Attempt full table rearrangement for bot
+    // Returns { success: boolean, newMelds: array, cardsFromHand: array }
+    tryBotRearrangement(tableCards, hand, requiredTableCardIds) {
+        // Combine table cards with hand cards
+        const allCards = [...tableCards, ...hand];
+        
+        // Try to find an arrangement that uses all table cards plus some hand cards
+        const result = this.findValidArrangement(allCards, requiredTableCardIds);
+        
+        if (!result.success) {
+            return { success: false };
+        }
+        
+        // Check that all table cards are used
+        const usedIds = new Set(result.melds.flatMap(m => m.map(c => c.id)));
+        const allTableCardsUsed = [...requiredTableCardIds].every(id => usedIds.has(id));
+        
+        if (!allTableCardsUsed) {
+            return { success: false };
+        }
+        
+        // Find which hand cards were used
+        const handCardIds = new Set(hand.map(c => c.id));
+        const cardsFromHand = result.melds.flatMap(m => m).filter(c => handCardIds.has(c.id));
+        
+        // Only proceed if we're using at least one hand card and have at least one card left
+        if (cardsFromHand.length === 0) {
+            return { success: false };
+        }
+        
+        const remainingHand = hand.filter(c => !cardsFromHand.some(hc => hc.id === c.id));
+        if (remainingHand.length === 0) {
+            return { success: false }; // Must keep at least one card to discard
+        }
+        
+        // Convert melds to proper format
+        const newMelds = result.melds.map((cards, i) => ({
+            id: `meld_bot_${Date.now()}_${i}`,
+            cards: cards,
+            playerId: 'bot'
+        }));
+        
+        return {
+            success: true,
+            newMelds,
+            cardsFromHand: cardsFromHand.map(c => c.id),
+            remainingHand
+        };
+    }
+
+    // Auto-play for bot players (enhanced AI)
     playBotTurn(lobbyCode) {
         const game = this.games.get(lobbyCode);
         if (!game || game.winner) return null;
@@ -103,25 +386,88 @@ class GameManager {
         const currentPlayer = game.players[game.currentTurn];
         if (!currentPlayer.isTestPlayer) return null;
 
-        // Bot draws from deck
+        // Bot draws - smart choice between deck and discard
         if (game.phase === 'draw') {
-            if (game.deck.length === 0) {
-                if (game.discardPile.length <= 1) {
-                    // No cards left anywhere - shouldn't happen
-                    return { success: false, error: 'No cards left' };
+            const discardTop = game.discardPile[game.discardPile.length - 1];
+            
+            // Check if discard card is useful
+            const shouldTakeDiscard = discardTop && 
+                this.isDiscardCardUseful(discardTop, currentPlayer.hand, game.melds);
+            
+            if (shouldTakeDiscard && game.discardPile.length > 0) {
+                // Take from discard pile
+                const drawnCard = game.discardPile.pop();
+                currentPlayer.hand.push(drawnCard);
+            } else {
+                // Draw from deck
+                if (game.deck.length === 0) {
+                    if (game.discardPile.length <= 1) {
+                        return { success: false, error: 'No cards left' };
+                    }
+                    const topCard = game.discardPile.pop();
+                    game.deck = shuffle(game.discardPile);
+                    game.discardPile = [topCard];
                 }
-                const topCard = game.discardPile.pop();
-                game.deck = shuffle(game.discardPile);
-                game.discardPile = [topCard];
+                const drawnCard = game.deck.shift();
+                currentPlayer.hand.push(drawnCard);
             }
-            const drawnCard = game.deck.shift();
-            currentPlayer.hand.push(drawnCard);
             game.phase = 'play';
         }
 
-        // Bot tries to play melds
+        // Bot tries to play melds and add to existing melds
         if (game.phase === 'play') {
-            // Find and play any valid melds
+            // Strategy 1: Try full table rearrangement if there are melds on table
+            if (game.melds.length > 0 && currentPlayer.hand.length > 1) {
+                const tableCards = game.melds.flatMap(m => m.cards);
+                const requiredTableCardIds = new Set(tableCards.map(c => c.id));
+                
+                const rearrangeResult = this.tryBotRearrangement(
+                    tableCards,
+                    currentPlayer.hand,
+                    requiredTableCardIds
+                );
+                
+                if (rearrangeResult.success && rearrangeResult.cardsFromHand.length > 0) {
+                    // Apply the rearrangement
+                    game.melds = rearrangeResult.newMelds;
+                    
+                    // Remove used cards from hand
+                    for (const cardId of rearrangeResult.cardsFromHand) {
+                        const idx = currentPlayer.hand.findIndex(c => c.id === cardId);
+                        if (idx !== -1) {
+                            currentPlayer.hand.splice(idx, 1);
+                        }
+                    }
+                }
+            }
+
+            // Strategy 2: Try to add individual cards to existing melds
+            let addedToMeld = true;
+            while (addedToMeld && currentPlayer.hand.length > 1) {
+                addedToMeld = false;
+                
+                for (const meld of game.melds) {
+                    for (let i = 0; i < currentPlayer.hand.length; i++) {
+                        const card = currentPlayer.hand[i];
+                        const result = this.canAddToMeld(card, meld);
+                        
+                        if (result.valid && currentPlayer.hand.length > 1) {
+                            // Add card to meld
+                            if (result.position === 'start') {
+                                meld.cards.unshift(card);
+                            } else {
+                                meld.cards.push(card);
+                            }
+                            currentPlayer.hand.splice(i, 1);
+                            addedToMeld = true;
+                            break;
+                        }
+                    }
+                    if (addedToMeld) break;
+                }
+            }
+
+            // Strategy 3: Play new melds from hand
             const possibleMelds = this.findPossibleMelds(currentPlayer.hand);
             for (const meldCards of possibleMelds) {
                 // Ensure playing this meld leaves at least 1 card
@@ -160,11 +506,9 @@ class GameManager {
                 return { winner: game.winner };
             }
 
-            // Bot discards a random card (prefer high value cards)
+            // Bot discards using smart selection
             if (currentPlayer.hand.length > 0) {
-                // Sort by value descending and discard highest
-                const sorted = [...currentPlayer.hand].sort((a, b) => b.value - a.value);
-                const discardCard = sorted[0];
+                const discardCard = this.findBestDiscard(currentPlayer.hand, game.melds);
                 const discardIndex = currentPlayer.hand.findIndex(c => c.id === discardCard.id);
                 const [discardedCard] = currentPlayer.hand.splice(discardIndex, 1);
                 game.discardPile.push(discardedCard);
