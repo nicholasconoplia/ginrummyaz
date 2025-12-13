@@ -446,6 +446,22 @@ function createFannedCardsHtml(count, isVertical) {
 function renderMelds() {
     elements.meldsContainer.innerHTML = '';
 
+    // Calculate total cards on table for dynamic scaling
+    const totalTableCards = gameState.melds.reduce((sum, meld) => sum + meld.cards.length, 0);
+    
+    // Remove old scaling classes
+    elements.meldsContainer.classList.remove('cards-medium', 'cards-many', 'cards-packed');
+    
+    // Add appropriate scaling class based on card count
+    if (totalTableCards >= 30) {
+        elements.meldsContainer.classList.add('cards-packed');
+    } else if (totalTableCards >= 20) {
+        elements.meldsContainer.classList.add('cards-many');
+    } else if (totalTableCards >= 12) {
+        elements.meldsContainer.classList.add('cards-medium');
+    }
+    // else: default large size
+
     if (gameState.melds.length === 0) {
         elements.meldsContainer.innerHTML = '<div class="no-melds">No melds yet</div>';
         return;

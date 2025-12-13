@@ -258,7 +258,7 @@
 /* Melds Area */
 .melds-area {
     flex: 1;
-    min-height: 80px;
+    min-height: 120px;
     background: rgba(0, 0, 0, 0.2);
     border-radius: var(--radius-lg);
     border: 2px dashed var(--glass-border);
@@ -279,9 +279,10 @@
 .melds-container {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-sm);
-    padding: var(--space-lg) var(--space-sm) var(--space-sm);
+    gap: var(--space-md);
+    padding: var(--space-xl) var(--space-md) var(--space-md);
     align-content: flex-start;
+    justify-content: center;
 }
 
 .meld-group {
@@ -293,11 +294,12 @@
     transition: all var(--transition-fast);
 }
 
+/* Default meld card size - LARGE for visibility */
 .meld-group .card {
-    width: 45px;
-    height: 63px;
-    margin-left: -15px;
-    font-size: 10px;
+    width: 70px;
+    height: 98px;
+    margin-left: -25px;
+    font-size: 14px;
 }
 
 .meld-group .card:first-child {
@@ -307,6 +309,28 @@
 .meld-group:hover {
     border-color: var(--accent-primary);
     box-shadow: var(--shadow-glow);
+}
+
+/* Dynamic scaling for melds - smaller when many cards on table */
+.melds-container.cards-medium .meld-group .card {
+    width: 55px;
+    height: 77px;
+    margin-left: -20px;
+    font-size: 12px;
+}
+
+.melds-container.cards-many .meld-group .card {
+    width: 45px;
+    height: 63px;
+    margin-left: -16px;
+    font-size: 10px;
+}
+
+.melds-container.cards-packed .meld-group .card {
+    width: 38px;
+    height: 53px;
+    margin-left: -14px;
+    font-size: 9px;
 }
 
 .meld-group.drop-target {
@@ -772,17 +796,39 @@
         gap: var(--space-xs);
     }
 
-    /* Meld cards - larger and more readable */
+    /* Meld cards - LARGER for mobile visibility */
     .meld-group {
-        padding: 3px;
+        padding: 4px;
     }
 
     .meld-group .card {
+        width: 55px;
+        height: 77px;
+        margin-left: -20px;
+        font-size: 12px;
+        border-radius: 4px;
+    }
+
+    /* Mobile dynamic scaling */
+    .melds-container.cards-medium .meld-group .card {
+        width: 45px;
+        height: 63px;
+        margin-left: -16px;
+        font-size: 10px;
+    }
+
+    .melds-container.cards-many .meld-group .card {
         width: 38px;
         height: 53px;
         margin-left: -14px;
         font-size: 9px;
-        border-radius: 4px;
+    }
+
+    .melds-container.cards-packed .meld-group .card {
+        width: 32px;
+        height: 45px;
+        margin-left: -12px;
+        font-size: 8px;
     }
 
     .no-melds {
@@ -1075,10 +1121,29 @@
         margin-left: -28px;
     }
 
+    /* Larger meld cards on tablets */
     .meld-group .card {
-        width: 50px;
-        height: 70px;
+        width: 65px;
+        height: 91px;
+        margin-left: -22px;
+    }
+
+    .melds-container.cards-medium .meld-group .card {
+        width: 52px;
+        height: 73px;
         margin-left: -18px;
+    }
+
+    .melds-container.cards-many .meld-group .card {
+        width: 42px;
+        height: 59px;
+        margin-left: -15px;
+    }
+
+    .melds-container.cards-packed .meld-group .card {
+        width: 35px;
+        height: 49px;
+        margin-left: -12px;
     }
 }
 
@@ -1111,10 +1176,33 @@
         margin-left: -32px;
     }
 
+    /* Large meld cards on desktop */
     .meld-group .card {
-        width: 55px;
-        height: 77px;
-        margin-left: -20px;
+        width: 80px;
+        height: 112px;
+        margin-left: -28px;
+        font-size: 16px;
+    }
+
+    .melds-container.cards-medium .meld-group .card {
+        width: 60px;
+        height: 84px;
+        margin-left: -22px;
+        font-size: 13px;
+    }
+
+    .melds-container.cards-many .meld-group .card {
+        width: 50px;
+        height: 70px;
+        margin-left: -18px;
+        font-size: 11px;
+    }
+
+    .melds-container.cards-packed .meld-group .card {
+        width: 40px;
+        height: 56px;
+        margin-left: -14px;
+        font-size: 10px;
     }
 
     .player-hand .card:hover {
