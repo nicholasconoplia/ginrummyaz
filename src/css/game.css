@@ -277,29 +277,31 @@
 }
 
 .melds-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-md);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
     padding: var(--space-xl) var(--space-md) var(--space-md);
-    align-content: flex-start;
-    justify-content: center;
+    align-content: start;
+    justify-items: center;
+    height: 100%;
 }
 
 .meld-group {
     display: flex;
-    padding: var(--space-xs);
+    padding: var(--space-sm);
     background: var(--bg-elevated);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--glass-border);
     transition: all var(--transition-fast);
+    justify-content: center;
 }
 
-/* Default meld card size - LARGE for visibility */
+/* Default meld card size - EXTRA LARGE for visibility */
 .meld-group .card {
-    width: 70px;
-    height: 98px;
-    margin-left: -25px;
-    font-size: 14px;
+    width: 90px;
+    height: 126px;
+    margin-left: -30px;
+    font-size: 16px;
 }
 
 .meld-group .card:first-child {
@@ -313,24 +315,24 @@
 
 /* Dynamic scaling for melds - smaller when many cards on table */
 .melds-container.cards-medium .meld-group .card {
-    width: 55px;
-    height: 77px;
-    margin-left: -20px;
-    font-size: 12px;
+    width: 70px;
+    height: 98px;
+    margin-left: -24px;
+    font-size: 14px;
 }
 
 .melds-container.cards-many .meld-group .card {
+    width: 55px;
+    height: 77px;
+    margin-left: -20px;
+    font-size: 11px;
+}
+
+.melds-container.cards-packed .meld-group .card {
     width: 45px;
     height: 63px;
     margin-left: -16px;
     font-size: 10px;
-}
-
-.melds-container.cards-packed .meld-group .card {
-    width: 38px;
-    height: 53px;
-    margin-left: -14px;
-    font-size: 9px;
 }
 
 .meld-group.drop-target {
@@ -796,39 +798,44 @@
         gap: var(--space-xs);
     }
 
-    /* Meld cards - LARGER for mobile visibility */
+    /* Meld cards - grid layout for mobile */
+    .melds-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-sm);
+    }
+
     .meld-group {
-        padding: 4px;
+        padding: 6px;
     }
 
     .meld-group .card {
-        width: 55px;
-        height: 77px;
-        margin-left: -20px;
-        font-size: 12px;
+        width: 65px;
+        height: 91px;
+        margin-left: -22px;
+        font-size: 13px;
         border-radius: 4px;
     }
 
     /* Mobile dynamic scaling */
     .melds-container.cards-medium .meld-group .card {
-        width: 45px;
-        height: 63px;
-        margin-left: -16px;
-        font-size: 10px;
+        width: 52px;
+        height: 73px;
+        margin-left: -18px;
+        font-size: 11px;
     }
 
     .melds-container.cards-many .meld-group .card {
-        width: 38px;
-        height: 53px;
-        margin-left: -14px;
-        font-size: 9px;
+        width: 42px;
+        height: 59px;
+        margin-left: -15px;
+        font-size: 10px;
     }
 
     .melds-container.cards-packed .meld-group .card {
-        width: 32px;
-        height: 45px;
+        width: 35px;
+        height: 49px;
         margin-left: -12px;
-        font-size: 8px;
+        font-size: 9px;
     }
 
     .no-melds {
@@ -1121,29 +1128,38 @@
         margin-left: -28px;
     }
 
-    /* Larger meld cards on tablets */
+    /* Larger meld cards on tablets - grid layout */
+    .melds-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-lg);
+    }
+
     .meld-group .card {
-        width: 65px;
-        height: 91px;
-        margin-left: -22px;
+        width: 85px;
+        height: 119px;
+        margin-left: -28px;
+        font-size: 15px;
     }
 
     .melds-container.cards-medium .meld-group .card {
-        width: 52px;
-        height: 73px;
-        margin-left: -18px;
+        width: 65px;
+        height: 91px;
+        margin-left: -22px;
+        font-size: 13px;
     }
 
     .melds-container.cards-many .meld-group .card {
-        width: 42px;
-        height: 59px;
-        margin-left: -15px;
+        width: 52px;
+        height: 73px;
+        margin-left: -18px;
+        font-size: 11px;
     }
 
     .melds-container.cards-packed .meld-group .card {
-        width: 35px;
-        height: 49px;
-        margin-left: -12px;
+        width: 42px;
+        height: 59px;
+        margin-left: -14px;
+        font-size: 10px;
     }
 }
 
@@ -1176,33 +1192,38 @@
         margin-left: -32px;
     }
 
-    /* Large meld cards on desktop */
+    /* Extra large meld cards on desktop - grid layout */
+    .melds-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-xl);
+    }
+
     .meld-group .card {
-        width: 80px;
-        height: 112px;
-        margin-left: -28px;
-        font-size: 16px;
+        width: 100px;
+        height: 140px;
+        margin-left: -35px;
+        font-size: 18px;
     }
 
     .melds-container.cards-medium .meld-group .card {
-        width: 60px;
-        height: 84px;
-        margin-left: -22px;
-        font-size: 13px;
+        width: 80px;
+        height: 112px;
+        margin-left: -28px;
+        font-size: 15px;
     }
 
     .melds-container.cards-many .meld-group .card {
+        width: 65px;
+        height: 91px;
+        margin-left: -24px;
+        font-size: 13px;
+    }
+
+    .melds-container.cards-packed .meld-group .card {
         width: 50px;
         height: 70px;
         margin-left: -18px;
         font-size: 11px;
-    }
-
-    .melds-container.cards-packed .meld-group .card {
-        width: 40px;
-        height: 56px;
-        margin-left: -14px;
-        font-size: 10px;
     }
 
     .player-hand .card:hover {
