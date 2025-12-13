@@ -7,11 +7,16 @@ class SocketClient {
     constructor() {
         this.socket = null;
         this.isConnected = false;
-        this.playerId = null;
+        this.playerId = null;  // Persistent player ID (survives page refresh)
         this.lobbyCode = null;
+        this.playerName = null;
         this.reconnectAttempts = 0;
-        this.maxReconnectAttempts = 5;
+        this.maxReconnectAttempts = 10;
         this.eventHandlers = new Map();
+        this.isReconnecting = false;
+        
+        // Load any saved session on construction
+        this.loadSession();
     }
 
     // Connect to the server
@@ -32,6 +37,7 @@ class SocketClient {
                 reconnection: true,
                 reconnectionAttempts: this.maxReconnectAttempts,
                 reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
             });
 
             this.socket.on('connect', () => {
@@ -39,9 +45,22 @@ class SocketClient {
                 this.isConnected = true;
                 this.reconnectAttempts = 0;
 
-                // If we had a previous session, try to reconnect
-                if (this.lobbyCode && this.playerId) {
-                    this.reconnectToGame();
+                // If we had a previous session, try to reconnect automatically
+                if (this.lobbyCode && this.playerId && !this.isReconnecting) {
+                    console.log('Attempting to reconnect to previous session:', this.lobbyCode);
+                    this.isReconnecting = true;
+                    this.reconnectToGame()
+                        .then((result) => {
+                            console.log('Reconnected to game successfully!', result);
+                            this.isReconnecting = false;
+                            this.emit('reconnected', result);
+                        })
+                        .catch((error) => {
+                            console.log('Could not reconnect to previous session:', error.message);
+                            this.isReconnecting = false;
+                            // Clear the invalid session
+                            this.clearSession();
+                        });
                 }
 
                 resolve();
@@ -50,13 +69,36 @@ class SocketClient {
             this.socket.on('connect_error', (error) => {
                 console.error('Connection error:', error);
                 this.isConnected = false;
-                reject(error);
+                // Don't reject on reconnection attempts, only on initial connect
+                if (this.reconnectAttempts === 0) {
+                    reject(error);
+                }
             });
 
             this.socket.on('disconnect', (reason) => {
                 console.log('Disconnected:', reason);
                 this.isConnected = false;
+                
+                // Don't clear session on disconnect - we want to reconnect!
+                // Only emit the event so UI can show "reconnecting..."
                 this.emit('connectionLost', reason);
+            });
+
+            // Socket.IO built-in reconnection events
+            this.socket.on('reconnect_attempt', (attempt) => {
+                console.log(`Reconnection attempt ${attempt}...`);
+                this.reconnectAttempts = attempt;
+                this.emit('reconnecting', { attempt, maxAttempts: this.maxReconnectAttempts });
+            });
+
+            this.socket.on('reconnect', () => {
+                console.log('Socket reconnected!');
+                // The 'connect' event will handle the game reconnection
+            });
+
+            this.socket.on('reconnect_failed', () => {
+                console.log('Reconnection failed after max attempts');
+                this.emit('reconnectFailed');
             });
 
             // Set up event forwarding
@@ -118,6 +160,7 @@ class SocketClient {
                 if (response.success) {
                     this.playerId = response.playerId;
                     this.lobbyCode = response.code;
+                    this.playerName = playerName;
                     this.saveSession();
                     resolve(response);
                 } else {
@@ -134,6 +177,7 @@ class SocketClient {
                 if (response.success) {
                     this.playerId = response.playerId;
                     this.lobbyCode = lobbyCode.toUpperCase();
+                    this.playerName = playerName;
                     this.saveSession();
                     resolve(response);
                 } else {
@@ -319,11 +363,14 @@ class SocketClient {
     // Save session for reconnection
     saveSession() {
         if (this.playerId && this.lobbyCode) {
-            localStorage.setItem('ginrummy_session', JSON.stringify({
+            const session = {
                 playerId: this.playerId,
                 lobbyCode: this.lobbyCode,
+                playerName: this.playerName,
                 timestamp: Date.now()
-            }));
+            };
+            localStorage.setItem('ginrummy_session', JSON.stringify(session));
+            console.log('Session saved:', session);
         }
     }
 
@@ -331,22 +378,35 @@ class SocketClient {
     loadSession() {
         try {
             const session = JSON.parse(localStorage.getItem('ginrummy_session'));
-            if (session && Date.now() - session.timestamp < 3600000) { // 1 hour
+            // Session valid for 2 hours
+            if (session && Date.now() - session.timestamp < 7200000) {
                 this.playerId = session.playerId;
                 this.lobbyCode = session.lobbyCode;
+                this.playerName = session.playerName;
+                console.log('Session loaded:', session);
                 return session;
+            } else if (session) {
+                console.log('Session expired, clearing...');
+                this.clearSession();
             }
         } catch (e) {
-            // Ignore parse errors
+            console.log('Error loading session:', e);
         }
         return null;
     }
 
+    // Check if there's a valid session to reconnect to
+    hasActiveSession() {
+        return !!(this.playerId && this.lobbyCode);
+    }
+
     // Clear session
     clearSession() {
+        console.log('Clearing session');
         localStorage.removeItem('ginrummy_session');
         this.playerId = null;
         this.lobbyCode = null;
+        this.playerName = null;
     }
 
     // Disconnect

@@ -167,7 +167,9 @@ class LobbyManager {
         this.playerToLobby.set(socket.id, code);
         socket.join(code);
 
-        return { success: true, lobby, player };
+        console.log(`Player ${player.name} reconnected to lobby ${code} (${oldSocketId} -> ${socket.id})`);
+
+        return { success: true, lobby, player, oldSocketId };
     }
 
     // Get lobby by code

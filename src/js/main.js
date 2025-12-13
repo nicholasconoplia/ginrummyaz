@@ -33,34 +33,6 @@ export function showToast(message, type = 'info') {
     }, 3000);
 }
 
-// Check for existing session and attempt reconnect
-async function checkExistingSession() {
-    const session = socketClient.loadSession();
-    if (session) {
-        try {
-            // Show loading while reconnecting
-            showScreen('loading-screen');
-
-            const response = await socketClient.reconnectToGame();
-
-            if (response.gameState) {
-                // Game in progress, go to game screen
-                showScreen('game-screen');
-                // The game:started event will trigger and render the game
-                return true;
-            } else if (response.lobby) {
-                // In lobby, go to waiting room
-                showScreen('waiting-room-screen');
-                return true;
-            }
-        } catch (error) {
-            console.log('Could not reconnect to previous session');
-            socketClient.clearSession();
-        }
-    }
-    return false;
-}
-
 // Initialize application
 async function init() {
     console.log('🃏 Initializing Gin Rummy...');
@@ -69,15 +41,18 @@ async function init() {
     initLobby();
     initGame();
 
+    // Set up reconnection event handlers BEFORE connecting
+    setupReconnectionHandlers();
+
     // Connect to server
     try {
         await socketClient.connect();
 
-        // Check for existing session
-        const reconnected = await checkExistingSession();
-
-        if (!reconnected) {
-            // Show home screen
+        // The socket client will automatically attempt to reconnect
+        // if there's a saved session (handled in socket.js connect event)
+        
+        // If no active session, show home screen
+        if (!socketClient.hasActiveSession()) {
             showScreen('home-screen');
         }
 
@@ -89,12 +64,45 @@ async function init() {
         showScreen('home-screen');
     }
 
-    // Handle connection lost
-    socketClient.on('connectionLost', () => {
-        showToast('Connection lost. Reconnecting...', 'warning');
+    console.log('🃏 Gin Rummy initialized!');
+}
+
+// Set up handlers for connection/reconnection events
+function setupReconnectionHandlers() {
+    // Handle successful reconnection to game
+    socketClient.on('reconnected', (result) => {
+        console.log('Reconnection successful:', result);
+        showToast('Reconnected to game!', 'success');
+        
+        if (result.gameState) {
+            // Game in progress, go to game screen
+            showScreen('game-screen');
+        } else if (result.lobby) {
+            // In lobby, go to waiting room
+            showScreen('waiting-room-screen');
+        }
     });
 
-    console.log('🃏 Gin Rummy initialized!');
+    // Handle connection lost
+    socketClient.on('connectionLost', (reason) => {
+        console.log('Connection lost:', reason);
+        // Don't show scary message for transport close (normal disconnect)
+        if (reason !== 'transport close') {
+            showToast('Connection lost. Attempting to reconnect...', 'warning');
+        }
+    });
+
+    // Handle reconnection attempts
+    socketClient.on('reconnecting', ({ attempt, maxAttempts }) => {
+        showToast(`Reconnecting... (${attempt}/${maxAttempts})`, 'info');
+    });
+
+    // Handle reconnection failure
+    socketClient.on('reconnectFailed', () => {
+        showToast('Could not reconnect. Please refresh the page.', 'error');
+        socketClient.clearSession();
+        showScreen('home-screen');
+    });
 }
 
 // Start the app

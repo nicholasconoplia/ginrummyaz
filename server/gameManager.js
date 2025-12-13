@@ -781,27 +781,49 @@ class GameManager {
     }
 
     // Handle player disconnect
-    playerDisconnected(lobbyCode, playerId) {
+    playerDisconnected(lobbyCode, socketId) {
         const game = this.games.get(lobbyCode);
         if (!game) return;
 
-        const player = game.players.find(p => p.id === playerId);
+        const player = game.players.find(p => p.id === socketId);
         if (player) {
             player.connected = false;
+            console.log(`Player ${player.name} marked as disconnected in game ${lobbyCode}`);
         }
     }
 
     // Handle player reconnect
-    playerReconnected(lobbyCode, playerId, newSocketId) {
+    // oldSocketId is optional - if provided, we look for that player
+    // persistentId is the odId from the client session
+    playerReconnected(lobbyCode, persistentId, newSocketId, oldSocketId = null) {
         const game = this.games.get(lobbyCode);
-        if (!game) return false;
+        if (!game) {
+            console.log(`No game found for lobby ${lobbyCode} during reconnection`);
+            return false;
+        }
 
-        const player = game.players.find(p => p.id === playerId);
+        // Try to find player by old socket ID first
+        let player = null;
+        if (oldSocketId) {
+            player = game.players.find(p => p.id === oldSocketId);
+        }
+        
+        // If not found, look for disconnected player by matching with lobby data
+        // The player's id in game state might still be the old socket id
+        if (!player) {
+            // Find disconnected player - this is a fallback
+            player = game.players.find(p => !p.connected && !p.isTestPlayer);
+        }
+
         if (player) {
+            const oldId = player.id;
             player.connected = true;
             player.id = newSocketId;
+            console.log(`Player ${player.name} reconnected in game ${lobbyCode} (${oldId} -> ${newSocketId})`);
             return true;
         }
+        
+        console.log(`Could not find player to reconnect in game ${lobbyCode}`);
         return false;
     }
 

@@ -453,18 +453,30 @@ io.on('connection', (socket) => {
 
     // Reconnect to game
     socket.on('game:reconnect', ({ lobbyCode, playerId }, callback) => {
+        console.log(`Reconnection attempt: lobby=${lobbyCode}, playerId=${playerId}`);
+        
         const result = lobbyManager.reconnectPlayer(socket, lobbyCode, playerId);
         if (result.success) {
-            gameManager.playerReconnected(lobbyCode.toUpperCase(), playerId, socket.id);
+            const code = lobbyCode.toUpperCase();
+            const oldSocketId = result.oldSocketId; // Get old socket ID from lobby manager
+            
+            // Update game manager with new socket ID
+            gameManager.playerReconnected(code, playerId, socket.id, oldSocketId);
 
-            const playerView = gameManager.getPlayerView(lobbyCode.toUpperCase(), socket.id);
+            const playerView = gameManager.getPlayerView(code, socket.id);
             if (playerView) {
+                console.log(`Player reconnected to active game in ${code}`);
                 callback({ success: true, gameState: playerView });
-                broadcastGameState(lobbyCode.toUpperCase());
+                
+                // Broadcast updated state to all players
+                setTimeout(() => broadcastGameState(code), 100);
             } else {
-                callback({ success: true, lobby: lobbyManager.getPublicLobbyInfo(lobbyCode.toUpperCase()) });
+                // No active game, just lobby
+                console.log(`Player reconnected to lobby ${code} (no active game)`);
+                callback({ success: true, lobby: lobbyManager.getPublicLobbyInfo(code) });
             }
         } else {
+            console.log(`Reconnection failed: ${result.error}`);
             callback(result);
         }
     });

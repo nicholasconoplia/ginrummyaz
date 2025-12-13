@@ -129,6 +129,33 @@ function setupEventListeners() {
     socketClient.on('game:state', handleGameState);
     socketClient.on('game:action', handleGameActionEvent);
     socketClient.on('game:over', handleGameOver);
+    
+    // Handle reconnection - refresh game state
+    socketClient.on('reconnected', handleReconnected);
+}
+
+// Handle reconnection to game
+function handleReconnected(result) {
+    console.log('Game module handling reconnection:', result);
+    
+    if (result.gameState) {
+        // We have game state, render it
+        gameState = result.gameState;
+        myPlayerId = socketClient.socket?.id;
+        
+        // Exit any rearrange mode
+        if (isRearrangeMode) {
+            exitRearrangeMode();
+        }
+        
+        // Clear any selections
+        clearSelection();
+        selectedTableCards = [];
+        
+        // Render the current state
+        renderGameState();
+        showToast('Reconnected to game!', 'success');
+    }
 }
 
 // Store my player ID for animation context
