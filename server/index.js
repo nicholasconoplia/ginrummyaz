@@ -47,7 +47,9 @@ const gameManager = new GameManager(io);
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../dist')));
-    app.get('*', (req, res) => {
+    // Express 5 (path-to-regexp v6) does not accept '*' as a route pattern.
+    // Use a RegExp to catch-all and serve the SPA entrypoint.
+    app.get(/.*/, (req, res) => {
         res.sendFile(path.join(__dirname, '../dist/index.html'));
     });
 }
