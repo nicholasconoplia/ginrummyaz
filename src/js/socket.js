@@ -19,9 +19,12 @@ class SocketClient {
         return new Promise((resolve, reject) => {
             // In development, connect to the separate server
             // In production, connect to the same origin
+            // If you deploy the frontend and backend to different hosts (e.g. Vercel + Render),
+            // set VITE_SERVER_URL in the frontend environment to your backend base URL.
+            // Example: https://your-backend.onrender.com
             const serverUrl = import.meta.env.DEV
                 ? 'http://localhost:3000'
-                : window.location.origin;
+                : (import.meta.env.VITE_SERVER_URL || window.location.origin);
 
             this.socket = io(serverUrl, {
                 transports: ['websocket', 'polling'],

@@ -1,6 +1,6 @@
-# 🚀 Free Deployment Guide - Gin Rummy Game
+# 🚀 Deployment Guide - Gin Rummy (Updated)
 
-This guide provides step-by-step instructions to deploy your Gin Rummy game for **FREE FOREVER** so you can play with friends online without running it locally.
+This guide provides step-by-step instructions to deploy your Gin Rummy game so you can play with friends online without running it locally.
 
 ## 📋 Prerequisites
 
@@ -9,59 +9,19 @@ This guide provides step-by-step instructions to deploy your Gin Rummy game for 
 
 ---
 
-## Option 1: Cyclic.sh (Recommended - True Free Forever)
+## Option 1: Render (Best fit if it can “sleep” when idle)
 
-**Why Cyclic.sh?**
-- ✅ Completely free forever - no limits, no credit card
-- ✅ Supports WebSocket/Socket.IO perfectly
-- ✅ Automatic deployments from GitHub
-- ✅ Free subdomain included
-- ✅ 24/7 uptime guarantee
-- ✅ Production-ready infrastructure
+**Why Render?**
+- ✅ Free instance type for web services
+- ✅ Supports WebSockets / Socket.IO
+- ✅ You already have `render.yaml` configured!
+- ⚠️ Free services **spin down after ~15 minutes of inactivity** and then cold start on the next visit
 
 ### Step-by-Step Deployment:
 
-#### Step 1: Create Cyclic Account
-1. Go to [https://cyclic.sh](https://cyclic.sh)
-2. Click "Sign Up" - no credit card required
-3. Complete the free account setup
-
-#### Step 2: Connect Your GitHub Repository
-1. In Cyclic dashboard, click "New Project"
-2. Select "Connect GitHub Repository"
-3. Authorize Cyclic to access your GitHub account
-4. Select your `ginrummyaz` repository from the list
-
-#### Step 3: Configure Build Settings
-Cyclic will auto-detect your Node.js project, but verify:
-- **Build Command:** `npm run build`
-- **Start Command:** `npm start`
-- **Node Version:** `18` or `20`
-
-#### Step 4: Deploy
-1. Click "Deploy"
-2. Wait for the build to complete (2-3 minutes)
-3. **Your app is now live!**
-
-**Your game URL will look like:** `https://your-app-name.cyclic.app`
-
----
-
-## Option 2: Onrender (Free Tier Available)
-
-**Why Onrender?**
-- ✅ Free tier available (750 hours/month)
-- ✅ Supports WebSocket/Socket.IO
-- ⚠️ May require credit card (but free tier won't charge you)
-- ✅ Great for production apps
-- ✅ Easy GitHub deployment
-
-### Step-by-Step Deployment:
-
-#### Step 1: Create Onrender Account
-1. Go to [https://onrender.com](https://onrender.com)
-2. Sign up with GitHub
-3. You may be asked for a credit card (but free tier won't charge)
+#### Step 1: Create Render Account
+1. Go to `https://render.com`
+2. Sign up (GitHub login is easiest)
 
 #### Step 2: Create New Web Service
 1. Click "New +" → "Web Service"
@@ -81,112 +41,30 @@ Add these in the "Environment" section:
 
 #### Step 5: Deploy
 1. Click "Create Web Service"
-2. Onrender will build and deploy automatically
+2. Render will build and deploy automatically
 3. Wait for deployment to complete (5-10 minutes)
 4. **Your app is now live!**
 
-**Your game URL will look like:** `https://ginrummy.onrender.com`
+**Your game URL will look like:** `https://<your-service>.onrender.com`
 
-**Note:** Free tier on Onrender spins down after 15 minutes of inactivity, but spins back up automatically when accessed (takes ~30 seconds).
-
----
-
-## Option 3: Railway (Free Tier Available)
-
-**Why Railway?**
-- ✅ Free tier with $5 credit monthly
-- ✅ Great performance
-- ⚠️ May require credit card
-- ✅ Supports WebSocket
-- ✅ Easy GitHub deployment
-
-### Step-by-Step Deployment:
-
-#### Step 1: Create Railway Account
-1. Go to [https://railway.app](https://railway.app)
-2. Sign up with GitHub
-3. You may need to add a credit card (but free tier won't charge)
-
-#### Step 2: Create New Project
-1. Click "New Project"
-2. Select "Deploy from GitHub repo"
-3. Choose your `ginrummyaz` repository
-
-#### Step 3: Configure
-1. Railway will auto-detect Node.js
-2. It will use your `Procfile` automatically ✅
-3. Add environment variable:
-   - `NODE_ENV` = `production`
-
-#### Step 4: Deploy
-1. Railway will automatically deploy
-2. Click on your service → "Settings" → "Generate Domain"
-3. **Your app is now live!**
-
-**Your game URL will look like:** `https://ginrummy-production.up.railway.app`
+**Note:** First person to open the link after it’s been idle may wait up to ~1 minute.
 
 ---
 
-## Option 4: Fly.io (Free Tier Available)
+## Option 2: Koyeb (Free tier + WebSockets; check plan details at signup)
 
-**Why Fly.io?**
-- ✅ Free tier available ($5 monthly credit)
-- ✅ Excellent WebSocket support
-- ⚠️ May require credit card
-- ✅ Global CDN
-- ✅ Great performance
+Koyeb offers a free web service tier and supports WebSockets. Follow their “Deploy from Git/GitHub” flow and use:
 
-### Step-by-Step Deployment:
-
-#### Step 1: Install Fly CLI
-```bash
-# On macOS
-brew install flyctl
-
-# Or download from https://fly.io/docs/hands-on/install-flyctl/
-```
-
-#### Step 2: Create Fly Account
-1. Go to [https://fly.io](https://fly.io)
-2. Sign up (may require credit card, but free tier won't charge)
-
-#### Step 3: Deploy from GitHub
-```bash
-# Clone your repo locally (if not already)
-git clone https://github.com/nicholasconoplia/ginrummyaz.git
-cd ginrummyaz
-
-# Login to Fly
-fly auth login
-
-# Launch the app
-fly launch
-```
-
-Follow the prompts:
-- Choose your app name
-- Select region (closest to you)
-- Confirm settings
-
-#### Step 4: Deploy
-```bash
-fly deploy
-```
-
-**Your game URL will look like:** `https://your-app-name.fly.dev`
+- **Build command**: `npm install && npm run build`
+- **Run command**: `npm start`
+- **Env**: `NODE_ENV=production`
 
 ---
 
-## Option 5: Vercel + Socket.IO Alternative
+## Not recommended (for your “free forever / no trials” requirement)
 
-**For a more complex setup (if other options don't work):**
-
-Since Vercel doesn't natively support WebSockets well, you'd need to:
-1. Deploy frontend to Vercel (free)
-2. Deploy backend to a separate WebSocket service
-3. Use WebSocket-as-a-Service providers
-
-This is more complex and not recommended for your use case.
+- **Railway**: their pricing states the free plan is a **trial** then becomes paid.
+- **Fly.io**: their docs state a **credit card is required** for new orgs.
 
 ---
 
@@ -214,22 +92,18 @@ After deploying, verify:
 **Solution:** Most platforms set `PORT` automatically. Your code uses `process.env.PORT || 3000` which handles this ✅
 
 ### Issue: WebSocket not working
-**Solution:**
+**Solution:** 
 - Verify your hosting platform supports WebSocket (all options above do)
 - Check that Socket.IO is using WebSocket transport (your code already does ✅)
 
 ---
 
-## 📝 Quick Comparison
+## 📝 Quick Comparison (current)
 
-| Platform | Free Forever | Credit Card | WebSocket | Ease | Best For |
-|----------|--------------|-------------|-----------|------|----------|
-| **Cyclic.sh** | ✅ Yes | ❌ No | ✅ Yes | ⭐⭐⭐⭐⭐ | Easiest |
-| **Onrender** | ✅ Yes* | ⚠️ Maybe | ✅ Yes | ⭐⭐⭐⭐ | Production |
-| **Railway** | ✅ Yes* | ⚠️ Maybe | ✅ Yes | ⭐⭐⭐⭐ | Production |
-| **Fly.io** | ✅ Yes* | ⚠️ Maybe | ✅ Yes | ⭐⭐⭐ | Advanced |
-
-*Free tier with limitations
+| Platform | WebSockets | Sleeps/Cold start | Notes |
+|----------|-----------:|------------------:|------|
+| **Render (Free web service)** | ✅ | ✅ | Best for “open link and play” |
+| **Koyeb (free tier)** | ✅ | depends | Check current limits at signup |
 
 ---
 
@@ -262,4 +136,5 @@ If you encounter issues:
 
 ---
 
-**Recommended:** Start with **Cyclic.sh** - it's truly free forever with no credit card required!
+**Recommended:** Use **Render Free** if you’re OK with the app sleeping when nobody is playing.
+
