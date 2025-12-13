@@ -58,8 +58,9 @@ class SocketClient {
                         .catch((error) => {
                             console.log('Could not reconnect to previous session:', error.message);
                             this.isReconnecting = false;
-                            // Clear the invalid session
+                            // Clear the invalid session and notify UI
                             this.clearSession();
+                            this.emit('reconnectFailed', { error: error.message });
                         });
                 }
 

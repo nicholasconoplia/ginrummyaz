@@ -22,7 +22,8 @@ class GameManager {
         const gameState = {
             lobbyCode,
             players: players.map((player, index) => ({
-                id: player.id,
+                id: player.id,           // Socket ID (can change on reconnect)
+                odId: player.odId,       // Persistent ID (stays the same)
                 name: player.name,
                 hand: hands[index],
                 connected: true,
@@ -793,7 +794,6 @@ class GameManager {
     }
 
     // Handle player reconnect
-    // oldSocketId is optional - if provided, we look for that player
     // persistentId is the odId from the client session
     playerReconnected(lobbyCode, persistentId, newSocketId, oldSocketId = null) {
         const game = this.games.get(lobbyCode);
@@ -802,16 +802,16 @@ class GameManager {
             return false;
         }
 
-        // Try to find player by old socket ID first
-        let player = null;
-        if (oldSocketId) {
+        // Find player by persistent ID (odId) - this is the most reliable way
+        let player = game.players.find(p => p.odId === persistentId);
+        
+        // Fallback: try to find by old socket ID
+        if (!player && oldSocketId) {
             player = game.players.find(p => p.id === oldSocketId);
         }
         
-        // If not found, look for disconnected player by matching with lobby data
-        // The player's id in game state might still be the old socket id
+        // Last resort: find any disconnected non-bot player
         if (!player) {
-            // Find disconnected player - this is a fallback
             player = game.players.find(p => !p.connected && !p.isTestPlayer);
         }
 
@@ -819,11 +819,11 @@ class GameManager {
             const oldId = player.id;
             player.connected = true;
             player.id = newSocketId;
-            console.log(`Player ${player.name} reconnected in game ${lobbyCode} (${oldId} -> ${newSocketId})`);
+            console.log(`Player ${player.name} reconnected in game ${lobbyCode} (${oldId} -> ${newSocketId}, odId: ${persistentId})`);
             return true;
         }
         
-        console.log(`Could not find player to reconnect in game ${lobbyCode}`);
+        console.log(`Could not find player to reconnect in game ${lobbyCode} (persistentId: ${persistentId})`);
         return false;
     }
 

@@ -44,15 +44,34 @@ async function init() {
     // Set up reconnection event handlers BEFORE connecting
     setupReconnectionHandlers();
 
+    // Check if we have a saved session BEFORE connecting
+    const hasSession = socketClient.hasActiveSession();
+    
+    if (hasSession) {
+        console.log('Found saved session, will attempt to reconnect...');
+        showToast('Reconnecting to your game...', 'info');
+    }
+
     // Connect to server
     try {
         await socketClient.connect();
 
-        // The socket client will automatically attempt to reconnect
-        // if there's a saved session (handled in socket.js connect event)
-        
-        // If no active session, show home screen
-        if (!socketClient.hasActiveSession()) {
+        // If we had a session, wait a bit for the reconnection to complete
+        // The socket.js connect handler will attempt reconnection automatically
+        if (hasSession) {
+            // Wait for reconnection attempt to complete (handled by socket.js)
+            // The 'reconnected' event will show the correct screen
+            // Set a timeout in case reconnection doesn't trigger the event
+            setTimeout(() => {
+                // If we're still not on a game/lobby screen, something went wrong
+                const currentScreen = document.querySelector('.screen.active');
+                if (!currentScreen || currentScreen.id === 'loading-screen') {
+                    console.log('Reconnection timed out, showing home screen');
+                    showScreen('home-screen');
+                }
+            }, 5000); // 5 second timeout
+        } else {
+            // No saved session, show home screen
             showScreen('home-screen');
         }
 
@@ -98,9 +117,10 @@ function setupReconnectionHandlers() {
     });
 
     // Handle reconnection failure
-    socketClient.on('reconnectFailed', () => {
-        showToast('Could not reconnect. Please refresh the page.', 'error');
-        socketClient.clearSession();
+    socketClient.on('reconnectFailed', (data) => {
+        const errorMsg = data?.error || 'Session expired';
+        console.log('Reconnection failed:', errorMsg);
+        showToast(`Could not reconnect: ${errorMsg}`, 'warning');
         showScreen('home-screen');
     });
 }
