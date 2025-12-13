@@ -89,89 +89,89 @@ You can rearrange cards on the table as long as:
 
 ## 🌐 Deploying for Public Access
 
-To let friends join from their devices (not just localhost), you need to deploy the game to a hosting service. Here are the easiest options:
+To let friends join from their devices (not just localhost), you need to deploy the game to a hosting service. Here are the best free options:
 
 ---
 
-### Option 1: Railway (Recommended - Easiest)
+### Option 1: Cyclic.sh (Recommended - Truly Free Forever)
 
-**Free tier available, instant deployment**
+**No credit card required, unlimited usage**
 
-1. **Create a GitHub repository** and push your code:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial commit"
-   git branch -M main
-   git remote add origin https://github.com/YOUR_USERNAME/ginrummy.git
-   git push -u origin main
-   ```
+1. **Go to [Cyclic.sh](https://cyclic.sh)** and sign up (free)
 
-2. **Go to [Railway.app](https://railway.app)** and sign up with GitHub
+2. **New Project** → **Connect GitHub Repository**
 
-3. **Create New Project** → **Deploy from GitHub repo**
+3. **Select your repository** (`ginrummyaz`)
 
-4. **Select your ginrummy repository**
+4. **Deploy** - Cyclic auto-detects your Node.js app and deploys
 
-5. Railway will auto-detect the configuration and deploy!
+5. **Get your URL** (e.g., `https://your-app-name.cyclic.app`)
 
-6. **Get your public URL** from the Railway dashboard (e.g., `https://ginrummy-production.up.railway.app`)
-
-7. **Share the URL with friends** - they can now join from anywhere!
+6. **Share the URL with friends** - they can now join from anywhere!
 
 ---
 
-### Option 2: Render (Free)
+### Option 2: Onrender (Free Tier)
 
-1. Push your code to GitHub
+**750 hours free per month**
 
-2. Go to [Render.com](https://render.com) and sign up
+1. Go to [Onrender.com](https://onrender.com) and sign up with GitHub
 
-3. **New** → **Web Service** → Connect your repository
+2. **New +** → **Web Service** → Connect your `ginrummyaz` repository
 
-4. Configure:
+3. Configure:
    - **Build Command**: `npm install && npm run build`
    - **Start Command**: `npm start`
    - **Environment**: Set `NODE_ENV` to `production`
 
-5. Click **Create Web Service** and wait for deployment
+4. Select **Free** plan and deploy
 
-6. Your game will be live at `https://ginrummy.onrender.com`
+5. Your game will be live at `https://ginrummy.onrender.com`
+
+*Note: Free tier sleeps after 15min inactivity*
 
 ---
 
-### Option 3: Fly.io (Free tier)
+### Option 3: Railway (Free Tier)
+
+**$5 monthly credit**
+
+1. Go to [Railway.app](https://railway.app) and sign up with GitHub
+
+2. **New Project** → **Deploy from GitHub repo** → Select `ginrummyaz`
+
+3. Railway auto-detects configuration and deploys
+
+4. Add environment variable: `NODE_ENV=production`
+
+5. **Generate Domain** for your public URL
+
+6. Your game will be live at `https://ginrummy-production.up.railway.app`
+
+---
+
+### Option 4: Fly.io (Free Tier)
+
+**Free tier with $5 monthly credit**
 
 1. Install Fly CLI:
    ```bash
-   curl -L https://fly.io/install.sh | sh
+   brew install flyctl  # macOS
+   # OR download from https://fly.io/docs/hands-on/install-flyctl/
    ```
 
-2. Login and launch:
-   ```bash
-   fly auth login
-   fly launch
-   ```
+2. Go to [Fly.io](https://fly.io) and sign up
 
 3. Deploy:
    ```bash
+   git clone https://github.com/nicholasconoplia/ginrummyaz.git
+   cd ginrummyaz
+   fly auth login
+   fly launch
    fly deploy
    ```
 
----
-
-### Option 4: Heroku
-
-1. Install Heroku CLI and login:
-   ```bash
-   heroku login
-   heroku create my-ginrummy-game
-   ```
-
-2. Deploy:
-   ```bash
-   git push heroku main
-   ```
+4. Your game will be live at `https://your-app-name.fly.dev`
 
 ---
 
@@ -183,8 +183,8 @@ If you have a VPS (DigitalOcean, AWS, etc.) or want to host at home:
 
 2. **Clone and build**:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/ginrummy.git
-   cd ginrummy
+   git clone https://github.com/nicholasconoplia/ginrummyaz.git
+   cd ginrummyaz
    npm install
    npm run build
    ```

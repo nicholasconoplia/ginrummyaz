@@ -1,59 +1,63 @@
 # ⚡ Quick Deploy Guide - Choose Your Platform
 
-## 🥇 Easiest Options (No Credit Card Required)
+## 🥇 Best Free Option: Cyclic.sh (5 minutes, No Credit Card)
 
-### Option A: Replit (5 minutes)
-1. Go to [replit.com](https://replit.com) → Sign up with GitHub
-2. Click "+" → "Import from GitHub" → Paste your repo URL
-3. Click "Run" → Done! 🎉
+**Why Cyclic.sh?**
+- Completely free forever - no limits
+- No credit card required
+- Perfect WebSocket support
+- Auto-deploys from GitHub
 
-**Your URL:** `https://your-repl-name.your-username.repl.co`
+**Steps:**
+1. Go to [cyclic.sh](https://cyclic.sh) → Sign up (no credit card!)
+2. Click "New Project" → "Connect GitHub Repository"
+3. Select your `ginrummyaz` repository
+4. Click "Deploy"
+5. Wait 2-3 minutes → Your game is live! 🎉
 
-### Option B: Glitch (5 minutes)
-1. Go to [glitch.com](https://glitch.com) → Sign up with GitHub
-2. Click "New Project" → "Import from GitHub" → Paste your repo URL
-3. Wait for auto-deploy → Done! 🎉
-
-**Your URL:** `https://your-project-name.glitch.me`
+**Your URL:** `https://your-app-name.cyclic.app`
 
 ---
 
-## 🎯 Recommended: Replit
+## 🎯 Alternative Options (May Require Credit Card)
 
-**Why?** 
-- Fastest setup
-- No credit card needed
-- Perfect WebSocket support
-- Free forever
+### Option A: Onrender (Free Tier)
+1. Go to [onrender.com](https://onrender.com) → Sign up with GitHub
+2. Click "New +" → "Web Service" → Connect your `ginrummyaz` repo
+3. Configure: Node, build: `npm install && npm run build`, start: `npm start`
+4. Select Free plan → Deploy
+5. **Your URL:** `https://ginrummy.onrender.com`
 
-**Steps:**
-1. Push your code to GitHub (if not already)
-2. Visit [replit.com](https://replit.com)
-3. Sign up/login with GitHub
-4. Click the "+" button → "Import from GitHub"
-5. Enter: `https://github.com/YOUR_USERNAME/ginrummy`
-6. Click "Import"
-7. Click the green "Run" button
-8. Wait for it to build and start
-9. Click "Webview" tab → Your game is live! 🎮
+*Note: Free tier sleeps after 15min inactivity*
 
-**Share this URL with friends!**
+### Option B: Railway (Free Tier)
+1. Go to [railway.app](https://railway.app) → Sign up with GitHub
+2. Click "New Project" → "Deploy from GitHub repo" → Select `ginrummyaz`
+3. Add env var: `NODE_ENV=production`
+4. Deploy automatically → Generate domain
+5. **Your URL:** `https://ginrummy-production.up.railway.app`
+
+### Option C: Fly.io (Free Tier)
+1. Install Fly CLI: `brew install flyctl`
+2. Go to [fly.io](https://fly.io) → Sign up
+3. In terminal: `fly launch` (select your cloned repo)
+4. `fly deploy`
+5. **Your URL:** `https://your-app-name.fly.dev`
 
 ---
 
 ## 📚 Full Instructions
 
-See `DEPLOYMENT.md` for detailed instructions for all platforms including Render, Railway, and troubleshooting tips.
+See `DEPLOYMENT.md` for detailed instructions for all platforms including troubleshooting tips.
 
 ---
 
 ## ✅ Pre-Deployment Checklist
 
-- [ ] Code is pushed to GitHub
+- [ ] Code is pushed to GitHub (`ginrummyaz` repo) ✅
 - [ ] `package.json` has correct scripts ✅ (already done)
 - [ ] `Procfile` exists ✅ (already done)
 - [ ] Server serves static files in production ✅ (already done)
-- [ ] Socket.IO connects to same origin in production ✅ (already done)
+- [ ] Socket.IO connects correctly in production ✅ (already done)
 
 **You're ready to deploy!** 🚀
-

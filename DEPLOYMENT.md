@@ -9,127 +9,64 @@ This guide provides step-by-step instructions to deploy your Gin Rummy game for 
 
 ---
 
-## Option 1: Replit (Recommended - Easiest, No Credit Card)
+## Option 1: Cyclic.sh (Recommended - True Free Forever)
 
-**Why Replit?**
-- ✅ Completely free forever
-- ✅ No credit card required
+**Why Cyclic.sh?**
+- ✅ Completely free forever - no limits, no credit card
 - ✅ Supports WebSocket/Socket.IO perfectly
-- ✅ Easy deployment
-- ✅ Automatic HTTPS
+- ✅ Automatic deployments from GitHub
 - ✅ Free subdomain included
+- ✅ 24/7 uptime guarantee
+- ✅ Production-ready infrastructure
 
 ### Step-by-Step Deployment:
 
-#### Step 1: Prepare Your Code
-1. Make sure your code is pushed to GitHub
-2. Your project structure is already correct!
-
-#### Step 2: Create Replit Account
-1. Go to [https://replit.com](https://replit.com)
-2. Click "Sign up" (you can use GitHub to sign up)
+#### Step 1: Create Cyclic Account
+1. Go to [https://cyclic.sh](https://cyclic.sh)
+2. Click "Sign Up" - no credit card required
 3. Complete the free account setup
 
-#### Step 3: Import Your Project
-1. In Replit, click the "+" button (Create Repl)
-2. Click "Import from GitHub"
-3. Enter your GitHub repository URL (e.g., `https://github.com/yourusername/ginrummy`)
-4. Click "Import"
-5. Select "Node.js" as the template if prompted
+#### Step 2: Connect Your GitHub Repository
+1. In Cyclic dashboard, click "New Project"
+2. Select "Connect GitHub Repository"
+3. Authorize Cyclic to access your GitHub account
+4. Select your `ginrummyaz` repository from the list
 
-#### Step 4: Configure Replit
-1. Replit will automatically detect your `package.json`
-2. Create a `.replit` file in the root directory with this content:
+#### Step 3: Configure Build Settings
+Cyclic will auto-detect your Node.js project, but verify:
+- **Build Command:** `npm run build`
+- **Start Command:** `npm start`
+- **Node Version:** `18` or `20`
 
-```toml
-run = "npm run build && npm start"
-entrypoint = "server/index.js"
-```
-
-#### Step 5: Set Environment Variables
-1. In Replit, click on the "Secrets" tab (lock icon) in the sidebar
-2. Add these environment variables:
-   - `NODE_ENV` = `production`
-   - `PORT` = `3000` (Replit will override this, but set it anyway)
-
-#### Step 6: Deploy
-1. Click the "Run" button at the top
-2. Replit will install dependencies, build, and start your server
-3. Once running, click the "Webview" tab to see your app
-4. **Your app is now live!** Share the Replit URL with friends
-
-#### Step 7: Get a Custom URL (Optional)
-1. Click the "Webview" tab
-2. Click the URL at the top
-3. You can share this URL - it's your permanent game URL!
-
-**Your game URL will look like:** `https://your-repl-name.your-username.repl.co`
-
----
-
-## Option 2: Glitch (Also Great, No Credit Card)
-
-**Why Glitch?**
-- ✅ Completely free forever
-- ✅ No credit card required
-- ✅ Supports WebSocket/Socket.IO
-- ✅ Easy GitHub import
-- ✅ Free subdomain
-
-### Step-by-Step Deployment:
-
-#### Step 1: Create Glitch Account
-1. Go to [https://glitch.com](https://glitch.com)
-2. Click "Sign In" (you can use GitHub)
-3. Complete the free account setup
-
-#### Step 2: Import from GitHub
-1. Click "New Project"
-2. Click "Import from GitHub"
-3. Enter your repository URL
-4. Click "OK"
-
-#### Step 3: Configure Glitch
-1. Glitch will automatically install dependencies
-2. Create a `.env` file in the root with:
-   ```
-   NODE_ENV=production
-   PORT=3000
-   ```
-
-#### Step 4: Update package.json Scripts (if needed)
-Glitch should automatically detect your start script, but verify:
-- Your `package.json` already has `"start": "NODE_ENV=production node server/index.js"` ✅
-
-#### Step 5: Deploy
-1. Glitch automatically deploys when you save files
-2. Click "Show" → "In a New Window" to see your live app
+#### Step 4: Deploy
+1. Click "Deploy"
+2. Wait for the build to complete (2-3 minutes)
 3. **Your app is now live!**
 
-**Your game URL will look like:** `https://your-project-name.glitch.me`
+**Your game URL will look like:** `https://your-app-name.cyclic.app`
 
 ---
 
-## Option 3: Render.com (Free Tier - May Require Credit Card)
+## Option 2: Onrender (Free Tier Available)
 
-**Why Render?**
-- ✅ Free tier available
+**Why Onrender?**
+- ✅ Free tier available (750 hours/month)
+- ✅ Supports WebSocket/Socket.IO
+- ⚠️ May require credit card (but free tier won't charge you)
 - ✅ Great for production apps
-- ⚠️ May require credit card (but won't charge you)
-- ✅ Supports WebSocket
-- ✅ You already have `render.yaml` configured!
+- ✅ Easy GitHub deployment
 
 ### Step-by-Step Deployment:
 
-#### Step 1: Create Render Account
-1. Go to [https://render.com](https://render.com)
-2. Sign up (you can use GitHub)
-3. You may be asked for a credit card, but the free tier won't charge you
+#### Step 1: Create Onrender Account
+1. Go to [https://onrender.com](https://onrender.com)
+2. Sign up with GitHub
+3. You may be asked for a credit card (but free tier won't charge)
 
 #### Step 2: Create New Web Service
 1. Click "New +" → "Web Service"
 2. Connect your GitHub repository
-3. Select your `ginrummy` repository
+3. Select your `ginrummyaz` repository
 
 #### Step 3: Configure Service
 1. **Name:** `ginrummy` (or any name)
@@ -144,17 +81,17 @@ Add these in the "Environment" section:
 
 #### Step 5: Deploy
 1. Click "Create Web Service"
-2. Render will build and deploy automatically
+2. Onrender will build and deploy automatically
 3. Wait for deployment to complete (5-10 minutes)
 4. **Your app is now live!**
 
 **Your game URL will look like:** `https://ginrummy.onrender.com`
 
-**Note:** Free tier on Render spins down after 15 minutes of inactivity, but spins back up automatically when accessed (takes ~30 seconds).
+**Note:** Free tier on Onrender spins down after 15 minutes of inactivity, but spins back up automatically when accessed (takes ~30 seconds).
 
 ---
 
-## Option 4: Railway (Free Tier - May Require Credit Card)
+## Option 3: Railway (Free Tier Available)
 
 **Why Railway?**
 - ✅ Free tier with $5 credit monthly
@@ -173,7 +110,7 @@ Add these in the "Environment" section:
 #### Step 2: Create New Project
 1. Click "New Project"
 2. Select "Deploy from GitHub repo"
-3. Choose your `ginrummy` repository
+3. Choose your `ginrummyaz` repository
 
 #### Step 3: Configure
 1. Railway will auto-detect Node.js
@@ -187,6 +124,69 @@ Add these in the "Environment" section:
 3. **Your app is now live!**
 
 **Your game URL will look like:** `https://ginrummy-production.up.railway.app`
+
+---
+
+## Option 4: Fly.io (Free Tier Available)
+
+**Why Fly.io?**
+- ✅ Free tier available ($5 monthly credit)
+- ✅ Excellent WebSocket support
+- ⚠️ May require credit card
+- ✅ Global CDN
+- ✅ Great performance
+
+### Step-by-Step Deployment:
+
+#### Step 1: Install Fly CLI
+```bash
+# On macOS
+brew install flyctl
+
+# Or download from https://fly.io/docs/hands-on/install-flyctl/
+```
+
+#### Step 2: Create Fly Account
+1. Go to [https://fly.io](https://fly.io)
+2. Sign up (may require credit card, but free tier won't charge)
+
+#### Step 3: Deploy from GitHub
+```bash
+# Clone your repo locally (if not already)
+git clone https://github.com/nicholasconoplia/ginrummyaz.git
+cd ginrummyaz
+
+# Login to Fly
+fly auth login
+
+# Launch the app
+fly launch
+```
+
+Follow the prompts:
+- Choose your app name
+- Select region (closest to you)
+- Confirm settings
+
+#### Step 4: Deploy
+```bash
+fly deploy
+```
+
+**Your game URL will look like:** `https://your-app-name.fly.dev`
+
+---
+
+## Option 5: Vercel + Socket.IO Alternative
+
+**For a more complex setup (if other options don't work):**
+
+Since Vercel doesn't natively support WebSockets well, you'd need to:
+1. Deploy frontend to Vercel (free)
+2. Deploy backend to a separate WebSocket service
+3. Use WebSocket-as-a-Service providers
+
+This is more complex and not recommended for your use case.
 
 ---
 
@@ -214,7 +214,7 @@ After deploying, verify:
 **Solution:** Most platforms set `PORT` automatically. Your code uses `process.env.PORT || 3000` which handles this ✅
 
 ### Issue: WebSocket not working
-**Solution:** 
+**Solution:**
 - Verify your hosting platform supports WebSocket (all options above do)
 - Check that Socket.IO is using WebSocket transport (your code already does ✅)
 
@@ -224,10 +224,10 @@ After deploying, verify:
 
 | Platform | Free Forever | Credit Card | WebSocket | Ease | Best For |
 |----------|--------------|-------------|-----------|------|----------|
-| **Replit** | ✅ Yes | ❌ No | ✅ Yes | ⭐⭐⭐⭐⭐ | Easiest |
-| **Glitch** | ✅ Yes | ❌ No | ✅ Yes | ⭐⭐⭐⭐⭐ | Easiest |
-| **Render** | ✅ Yes* | ⚠️ Maybe | ✅ Yes | ⭐⭐⭐⭐ | Production |
+| **Cyclic.sh** | ✅ Yes | ❌ No | ✅ Yes | ⭐⭐⭐⭐⭐ | Easiest |
+| **Onrender** | ✅ Yes* | ⚠️ Maybe | ✅ Yes | ⭐⭐⭐⭐ | Production |
 | **Railway** | ✅ Yes* | ⚠️ Maybe | ✅ Yes | ⭐⭐⭐⭐ | Production |
+| **Fly.io** | ✅ Yes* | ⚠️ Maybe | ✅ Yes | ⭐⭐⭐ | Advanced |
 
 *Free tier with limitations
 
@@ -262,5 +262,4 @@ If you encounter issues:
 
 ---
 
-**Recommended:** Start with **Replit** or **Glitch** - they're the easiest and don't require credit cards!
-
+**Recommended:** Start with **Cyclic.sh** - it's truly free forever with no credit card required!
