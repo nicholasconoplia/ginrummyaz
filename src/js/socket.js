@@ -33,11 +33,18 @@ class SocketClient {
 
             this.socket = io(serverUrl, {
                 transports: ['websocket', 'polling'],
-                timeout: 10000,
+                timeout: 20000, // Increased from 10s to 20s
                 reconnection: true,
                 reconnectionAttempts: this.maxReconnectAttempts,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
+                // Increase ping timeout to handle slow/unstable connections
+                pingTimeout: 60000, // 60 seconds (default is 20s)
+                pingInterval: 25000, // Send ping every 25 seconds (default is 25s)
+                // Force new connection to avoid stale connections
+                forceNew: false,
+                // Upgrade transport automatically
+                upgrade: true,
             });
 
             this.socket.on('connect', () => {
@@ -80,6 +87,15 @@ class SocketClient {
                 console.log('Disconnected:', reason);
                 this.isConnected = false;
                 
+                // Ping timeout is usually recoverable - don't treat it as fatal
+                if (reason === 'ping timeout' || reason === 'transport close') {
+                    console.log('Connection lost due to ping timeout or transport close - will attempt to reconnect');
+                    // Socket.IO will automatically attempt to reconnect
+                } else if (reason === 'io server disconnect') {
+                    // Server explicitly disconnected us - might need manual reconnect
+                    console.log('Server disconnected us - may need manual reconnect');
+                }
+                
                 // Don't clear session on disconnect - we want to reconnect!
                 // Only emit the event so UI can show "reconnecting..."
                 this.emit('connectionLost', reason);
@@ -92,9 +108,24 @@ class SocketClient {
                 this.emit('reconnecting', { attempt, maxAttempts: this.maxReconnectAttempts });
             });
 
-            this.socket.on('reconnect', () => {
-                console.log('Socket reconnected!');
-                // The 'connect' event will handle the game reconnection
+            this.socket.on('reconnect', (attemptNumber) => {
+                console.log(`Socket reconnected after ${attemptNumber} attempts!`);
+                this.isConnected = true;
+                this.reconnectAttempts = 0;
+                
+                // If we have an active session, refresh the game state
+                if (this.lobbyCode && this.playerId && !this.isReconnecting) {
+                    console.log('Refreshing game state after reconnection...');
+                    this.reconnectToGame()
+                        .then((result) => {
+                            console.log('Game state refreshed after reconnection!', result);
+                            this.emit('reconnected', result);
+                        })
+                        .catch((error) => {
+                            console.log('Could not refresh game state:', error.message);
+                            // Don't clear session on reconnect failure - might be temporary
+                        });
+                }
             });
 
             this.socket.on('reconnect_failed', () => {

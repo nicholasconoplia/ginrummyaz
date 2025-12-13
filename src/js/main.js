@@ -105,8 +105,13 @@ function setupReconnectionHandlers() {
     // Handle connection lost
     socketClient.on('connectionLost', (reason) => {
         console.log('Connection lost:', reason);
-        // Don't show scary message for transport close (normal disconnect)
-        if (reason !== 'transport close') {
+        
+        // Ping timeout is usually recoverable - show a gentle message
+        if (reason === 'ping timeout') {
+            showToast('Connection timeout. Reconnecting...', 'info');
+        } else if (reason === 'transport close') {
+            // Normal disconnect - don't show message
+        } else {
             showToast('Connection lost. Attempting to reconnect...', 'warning');
         }
     });

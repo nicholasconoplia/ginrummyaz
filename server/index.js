@@ -37,7 +37,14 @@ const io = new Server(httpServer, {
         origin: getAllowedOrigins(),
         methods: ['GET', 'POST'],
         credentials: true
-    }
+    },
+    // Increase ping timeout to handle slow/unstable connections
+    pingTimeout: 60000, // 60 seconds (default is 20s) - time to wait for pong response
+    pingInterval: 25000, // Send ping every 25 seconds (default is 25s)
+    // Allow connections to upgrade from polling to websocket
+    transports: ['websocket', 'polling'],
+    // Connection timeout
+    connectTimeout: 20000, // 20 seconds
 });
 
 // Initialize managers
