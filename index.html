@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description"
+    content="Play Gin Rummy online with friends! Create a lobby, customize your deck, and enjoy smooth gameplay on any device.">
+  <title>Gin Rummy - Play Online with Friends</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/css/index.css">
+  <link rel="stylesheet" href="/src/css/lobby.css">
+  <link rel="stylesheet" href="/src/css/game.css">
+  <link rel="stylesheet" href="/src/css/cards.css">
+  <link rel="stylesheet" href="/src/css/animations.css">
+</head>
+
+<body>
+  <div id="app">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="screen active">
+      <div class="loading-content">
+        <div class="logo">
+          <span class="logo-icon">🃏</span>
+          <h1>Gin Rummy</h1>
+        </div>
+        <div class="loading-spinner"></div>
+        <p>Connecting to server...</p>
+      </div>
+    </div>
+
+    <!-- Home Screen -->
+    <div id="home-screen" class="screen">
+      <div class="home-container">
+        <div class="hero">
+          <div class="hero-cards">
+            <div class="floating-card card-1">♠️</div>
+            <div class="floating-card card-2">♥️</div>
+            <div class="floating-card card-3">♦️</div>
+            <div class="floating-card card-4">♣️</div>
+          </div>
+          <div class="logo">
+            <span class="logo-icon">🃏</span>
+            <h1>Gin Rummy</h1>
+          </div>
+          <p class="tagline">Play with friends anywhere, anytime</p>
+        </div>
+
+        <div class="home-actions">
+          <div class="name-input-group">
+            <label for="player-name">Your Name</label>
+            <input type="text" id="player-name" placeholder="Enter your name" maxlength="20" autocomplete="off">
+          </div>
+
+          <button id="create-lobby-btn" class="btn btn-primary btn-large">
+            <span class="btn-icon">✨</span>
+            Create Lobby
+          </button>
+
+          <div class="divider">
+            <span>or</span>
+          </div>
+
+          <div class="join-group">
+            <input type="text" id="lobby-code-input" placeholder="Enter lobby code" maxlength="6" autocomplete="off">
+            <button id="join-lobby-btn" class="btn btn-secondary">Join</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Waiting Room Screen -->
+    <div id="waiting-room-screen" class="screen">
+      <div class="waiting-container">
+        <div class="lobby-header">
+          <button id="leave-lobby-btn" class="btn-back">← Leave</button>
+          <h2>Lobby</h2>
+          <div class="lobby-code-display">
+            <span class="label">Code:</span>
+            <span id="lobby-code" class="code">ABC123</span>
+            <button id="copy-code-btn" class="btn-copy" title="Copy code">📋</button>
+          </div>
+        </div>
+
+        <div class="players-section">
+          <h3>Players <span id="player-count">(1/10)</span></h3>
+          <div id="players-list" class="players-list">
+            <!-- Players will be added here dynamically -->
+          </div>
+          <!-- Test Player Button (for development/testing) -->
+          <button id="add-test-player-btn" class="btn btn-secondary btn-small" style="margin-top: 12px;">
+            🤖 Add Test Player
+          </button>
+        </div>
+
+        <div id="host-settings" class="settings-section">
+          <h3>Game Settings</h3>
+          <div class="setting-row">
+            <label for="num-decks">Number of Decks</label>
+            <div class="stepper">
+              <button id="decks-minus" class="stepper-btn">-</button>
+              <span id="num-decks-display">1</span>
+              <button id="decks-plus" class="stepper-btn">+</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <label for="deck-style">Card Style</label>
+            <div class="toggle-group">
+              <button id="deck-default-btn" class="toggle-btn active" data-style="default">Default</button>
+              <button id="deck-custom-btn" class="toggle-btn" data-style="custom">Custom</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="waiting-actions">
+          <div class="first-player-section">
+            <div id="first-player-display" class="first-player-display">
+              <span class="label">First player:</span>
+              <span id="first-player-name" class="first-player-name">Not selected</span>
+            </div>
+            <button id="shuffle-first-btn" class="btn btn-secondary">
+              <span class="btn-icon shuffle-icon">🎲</span>
+              Shuffle First
+            </button>
+          </div>
+          <button id="start-game-btn" class="btn btn-primary btn-large" disabled>
+            <span class="btn-icon">🎮</span>
+            Start Game
+          </button>
+          <p id="waiting-message" class="waiting-text">Waiting for host to start...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="screen">
+      <div class="game-container">
+        <!-- Top Bar: Turn Info -->
+        <div class="game-header">
+          <div class="turn-info">
+            <span id="turn-indicator" class="turn-indicator">Your Turn</span>
+            <span id="phase-indicator" class="phase-indicator">Draw a card</span>
+          </div>
+          <button id="game-menu-btn" class="btn-icon-only">☰</button>
+        </div>
+
+        <!-- Main Game Table -->
+        <div class="game-table">
+          <!-- Left Players -->
+          <div id="left-players" class="side-players left-side">
+            <!-- Players on left rendered here -->
+          </div>
+
+          <!-- Center Area: Top Players, Table, Bottom Info -->
+          <div class="center-area">
+            <!-- Top Players -->
+            <div id="top-players" class="top-players">
+              <!-- Players on top rendered here -->
+            </div>
+
+            <!-- Central Play Area -->
+            <div class="play-area">
+              <!-- Melds Display -->
+              <div id="melds-area" class="melds-area">
+                <div class="melds-label">Melds on Table</div>
+                <div id="melds-container" class="melds-container">
+                  <!-- Melds will be rendered here -->
+                </div>
+              </div>
+
+              <!-- Deck and Discard -->
+              <div class="deck-area">
+                <div id="deck-pile" class="card-pile deck">
+                  <div class="card card-back">
+                    <div class="card-back-pattern"></div>
+                  </div>
+                  <span class="pile-count" id="deck-count">52</span>
+                </div>
+                <div id="discard-pile" class="card-pile discard">
+                  <div id="discard-top" class="card">
+                    <!-- Current discard card -->
+                  </div>
+                  <span class="pile-count" id="discard-count">1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Players -->
+          <div id="right-players" class="side-players right-side">
+            <!-- Players on right rendered here -->
+          </div>
+        </div>
+
+        <!-- Player's Hand -->
+        <div class="hand-section">
+          <div class="hand-header">
+            <span>Your Hand</span>
+            <span id="hand-count" class="hand-count">10 cards</span>
+          </div>
+          <div id="player-hand" class="player-hand">
+            <!-- Cards in hand will be rendered here -->
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div id="action-bar" class="action-bar">
+          <button id="sort-hand-btn" class="btn btn-small btn-ghost">Sort</button>
+          <button id="rearrange-btn" class="btn btn-secondary" disabled>Rearrange Table</button>
+          <button id="play-meld-btn" class="btn btn-primary" disabled>Play Cards</button>
+          <button id="discard-btn" class="btn btn-danger" disabled>Discard</button>
+        </div>
+        
+        <!-- Rearrange Mode Action Bar (hidden by default) -->
+        <div id="rearrange-action-bar" class="action-bar rearrange-bar hidden">
+          <button id="rearrange-cancel-btn" class="btn btn-ghost">✕ Cancel</button>
+          <div class="rearrange-status">
+            <span id="rearrange-status-text">Drag cards between melds freely</span>
+          </div>
+          <button id="rearrange-done-btn" class="btn btn-primary">✓ Done</button>
+        </div>
+      </div>
+
+      <!-- Game Menu Modal -->
+      <div id="game-menu-modal" class="modal">
+        <div class="modal-content">
+          <h3>Game Menu</h3>
+          <button id="view-rules-btn" class="btn btn-secondary">📖 View Rules</button>
+          <button id="leave-game-btn" class="btn btn-danger">🚪 Leave Game</button>
+          <button id="close-menu-btn" class="btn btn-ghost">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="game-over-screen" class="screen">
+      <div class="game-over-container">
+        <div class="winner-announcement">
+          <div class="confetti"></div>
+          <h1 id="winner-name">Player Wins!</h1>
+          <div class="trophy">🏆</div>
+        </div>
+
+        <div class="scores-section">
+          <h3>Final Scores</h3>
+          <div id="final-scores" class="final-scores">
+            <!-- Scores will be rendered here -->
+          </div>
+        </div>
+
+        <div class="game-over-actions">
+          <button id="play-again-btn" class="btn btn-primary btn-large">Play Again</button>
+          <button id="back-to-lobby-btn" class="btn btn-secondary">Back to Lobby</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+  </div>
+
+  <script type="module" src="/src/js/main.js"></script>
+</body>
+
+</html>

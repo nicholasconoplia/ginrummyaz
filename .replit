@@ -1,0 +1,15 @@
+# Replit configuration for Gin Rummy deployment
+
+# Command to run when clicking "Run"
+run = "npm install && npm run build && npm start"
+
+# Entry point (not used for Node.js but good to have)
+entrypoint = "server/index.js"
+
+# Language
+language = "nodejs"
+
+# Enable WebSocket support
+[deploy]
+run = ["sh", "-c", "npm install && npm run build && npm start"]
+

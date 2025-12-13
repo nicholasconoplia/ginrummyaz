@@ -1,0 +1,377 @@
+/* ========================================
+   CARD STYLES
+   ======================================== */
+
+/* Card dimensions - responsive */
+:root {
+    --card-width: 65px;
+    --card-height: 91px;
+    --card-radius: 8px;
+}
+
+@media (min-width: 768px) {
+    :root {
+        --card-width: 75px;
+        --card-height: 105px;
+        --card-radius: 10px;
+    }
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --card-width: 85px;
+        --card-height: 119px;
+        --card-radius: 12px;
+    }
+}
+
+/* Base Card */
+.card {
+    width: var(--card-width);
+    height: var(--card-height);
+    background: white;
+    border-radius: var(--card-radius);
+    border: 2px solid var(--glass-border);
+    position: relative;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+/* Card Face */
+.card-face {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 4px;
+}
+
+.card-corner {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    line-height: 1;
+}
+
+.card-corner.top-left {
+    top: 4px;
+    left: 6px;
+}
+
+.card-corner.bottom-right {
+    bottom: 4px;
+    right: 6px;
+    transform: rotate(180deg);
+}
+
+.card-rank {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.card-suit-small {
+    font-size: 12px;
+}
+
+.card-suit-large {
+    font-size: 28px;
+}
+
+@media (min-width: 768px) {
+    .card-rank {
+        font-size: 16px;
+    }
+
+    .card-suit-small {
+        font-size: 14px;
+    }
+
+    .card-suit-large {
+        font-size: 32px;
+    }
+}
+
+/* Card colors by suit */
+.card.hearts,
+.card.diamonds {
+    color: var(--suit-hearts);
+}
+
+.card.diamonds {
+    color: var(--suit-diamonds);
+}
+
+.card.clubs,
+.card.spades {
+    color: var(--suit-clubs);
+}
+
+/* Card Back */
+.card-back {
+    background: linear-gradient(135deg, #1e3a5f, #0f1c2e);
+    border: 2px solid #2d5a87;
+}
+
+.card-back-pattern {
+    width: calc(100% - 8px);
+    height: calc(100% - 8px);
+    background:
+        repeating-linear-gradient(45deg,
+            transparent,
+            transparent 3px,
+            rgba(255, 255, 255, 0.03) 3px,
+            rgba(255, 255, 255, 0.03) 6px),
+        repeating-linear-gradient(-45deg,
+            transparent,
+            transparent 3px,
+            rgba(255, 255, 255, 0.03) 3px,
+            rgba(255, 255, 255, 0.03) 6px);
+    border-radius: calc(var(--card-radius) - 4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-back-pattern::after {
+    content: '🃏';
+    font-size: 24px;
+    opacity: 0.3;
+}
+
+/* Custom card image */
+.card.has-custom-image {
+    padding: 0;
+    overflow: hidden;
+    background: transparent;
+}
+
+.card-bg-image {
+    position: absolute;
+    inset: 0;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: calc(var(--card-radius) - 2px);
+    z-index: 0;
+}
+
+/* Hide the text overlay on custom cards - let the full image show */
+.card.has-custom-image .card-face {
+    display: none;
+}
+
+/* Fix scaling on table - hide large suit when cards are small/on table */
+.meld-group .card .card-suit-large,
+.card-pile .card .card-suit-large {
+    display: none;
+}
+
+.meld-group .card .card-corner,
+.card-pile .card .card-corner {
+    /* Ensure corners are visible and properly sized */
+    transform: scale(0.9);
+    transform-origin: top left;
+}
+
+.meld-group .card .card-corner.bottom-right,
+.card-pile .card .card-corner.bottom-right {
+    transform-origin: bottom right;
+}
+
+/* Card States */
+.card.dragging {
+    opacity: 0.8;
+    transform: scale(1.1) rotate(5deg);
+    z-index: 100;
+    box-shadow: var(--shadow-xl);
+}
+
+.card.selected {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 15px var(--accent-primary-glow);
+}
+
+.card.highlight {
+    animation: cardHighlight 0.5s ease;
+}
+
+@keyframes cardHighlight {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Placeholder card styles until images are uploaded */
+.card-placeholder {
+    background: var(--bg-tertiary);
+    border: 2px dashed var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-xs);
+}
+
+.card-placeholder:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.card-placeholder-icon {
+    font-size: 20px;
+    opacity: 0.5;
+}
+
+/* Mini cards for other players */
+.mini-card {
+    width: 20px;
+    height: 28px;
+    background: linear-gradient(135deg, #1e3a5f, #0f1c2e);
+    border-radius: 3px;
+    border: 1px solid #2d5a87;
+}
+
+.mini-cards-stack {
+    display: flex;
+    margin-left: -12px;
+}
+
+.mini-cards-stack .mini-card {
+    margin-left: -12px;
+}
+
+.mini-cards-stack .mini-card:first-child {
+    margin-left: 0;
+}
+
+/* ========================================
+   CARD GRID (Settings Modal)
+   ======================================== */
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: var(--space-sm);
+    padding: var(--space-md) 0;
+}
+
+.card-upload-slot {
+    aspect-ratio: 65/91;
+    background: var(--bg-tertiary);
+    border: 2px dashed var(--glass-border);
+    border-radius: var(--card-radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-upload-slot:hover {
+    border-color: var(--accent-primary);
+    background: var(--bg-elevated);
+}
+
+.card-upload-slot.has-image {
+    border-style: solid;
+    border-color: var(--success);
+}
+
+.card-upload-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: calc(var(--card-radius) - 2px);
+}
+
+.card-upload-slot .slot-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    text-align: center;
+}
+
+.card-upload-slot .slot-icon {
+    font-size: var(--font-size-xl);
+    margin-bottom: 4px;
+}
+
+.card-upload-slot input[type="file"] {
+    display: none;
+}
+
+/* Upload section in settings */
+.upload-section {
+    display: flex;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.settings-info {
+    margin-bottom: var(--space-md);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+/* Suit sections in grid */
+.suit-section {
+    margin-bottom: var(--space-lg);
+}
+
+.suit-section h4 {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.suit-icon {
+    font-size: var(--font-size-lg);
+}
+
+.suit-icon.hearts {
+    color: var(--suit-hearts);
+}
+
+.suit-icon.diamonds {
+    color: var(--suit-diamonds);
+}
+
+.suit-icon.clubs,
+.suit-icon.spades {
+    color: var(--text-primary);
+}

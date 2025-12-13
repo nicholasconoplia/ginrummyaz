@@ -1,0 +1,13 @@
+# Render.com deployment configuration
+# Deploy at: https://render.com
+
+services:
+  - type: web
+    name: ginrummy
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+
