@@ -13,6 +13,16 @@ A real-time multiplayer Gin Rummy game where you can play with friends online fr
 
 ## Quick Start
 
+### Running Offline/Locally
+
+Want to play without internet or run it on your local machine? See **[OFFLINE_SETUP.md](./OFFLINE_SETUP.md)** for detailed instructions.
+
+**Quick start:**
+- **Mac/Linux**: Run `./start-local.sh`
+- **Windows**: Double-click `start-local.bat`
+
+The app will start on `http://localhost:3000` and work completely offline!
+
 ### Development
 
 1. Install dependencies:

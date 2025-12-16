@@ -1,0 +1,21 @@
+{
+  "name": "Gin Rummy",
+  "short_name": "Gin Rummy",
+  "description": "Play Gin Rummy online with friends! Create a lobby, customize your deck, and enjoy smooth gameplay on any device.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#16213e",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "entertainment"],
+  "screenshots": []
+}
+

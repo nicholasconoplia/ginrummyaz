@@ -57,7 +57,7 @@ class LobbyManager {
     }
 
     // Join an existing lobby
-    joinLobby(socket, lobbyCode, playerName) {
+    joinLobby(socket, lobbyCode, playerName, persistentPlayerId = null) {
         const code = lobbyCode.toUpperCase();
         const lobby = this.lobbies.get(code);
 
@@ -65,6 +65,35 @@ class LobbyManager {
             return { success: false, error: 'Lobby not found. Check the code and try again.' };
         }
 
+        // Check if this is a reconnection attempt
+        let reconnectingPlayer = null;
+        if (persistentPlayerId) {
+            reconnectingPlayer = lobby.players.find(p => p.odId === persistentPlayerId);
+            
+            // If found a disconnected player with matching persistent ID, allow reconnection
+            if (reconnectingPlayer && !reconnectingPlayer.connected) {
+                // This is a reconnection - update socket ID and mark as connected
+                const oldSocketId = reconnectingPlayer.id;
+                this.playerToLobby.delete(oldSocketId);
+                
+                reconnectingPlayer.id = socket.id;
+                reconnectingPlayer.connected = true;
+                this.playerToLobby.set(socket.id, code);
+                socket.join(code);
+                
+                console.log(`Player ${reconnectingPlayer.name} reconnecting to lobby ${code} (${oldSocketId} -> ${socket.id})`);
+                
+                return { 
+                    success: true, 
+                    lobby, 
+                    playerId: persistentPlayerId,
+                    isReconnection: true,
+                    oldSocketId
+                };
+            }
+        }
+
+        // Normal join flow - game must be waiting
         if (lobby.status !== 'waiting') {
             return { success: false, error: 'Game has already started.' };
         }
@@ -73,8 +102,9 @@ class LobbyManager {
             return { success: false, error: 'Lobby is full.' };
         }
 
-        // Check for duplicate names
-        if (lobby.players.some(p => p.name.toLowerCase() === playerName.toLowerCase())) {
+        // Check for duplicate names (excluding the reconnecting player)
+        const activePlayers = lobby.players.filter(p => p.connected || p.id === socket.id);
+        if (activePlayers.some(p => p.name.toLowerCase() === playerName.toLowerCase())) {
             return { success: false, error: 'Name already taken. Please choose a different name.' };
         }
 
@@ -92,7 +122,7 @@ class LobbyManager {
         this.playerToLobby.set(socket.id, code);
         socket.join(code);
 
-        return { success: true, lobby, playerId };
+        return { success: true, lobby, playerId, isReconnection: false };
     }
 
     // Leave a lobby

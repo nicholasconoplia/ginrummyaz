@@ -143,6 +143,11 @@ function handleReconnected(result) {
         gameState = result.gameState;
         myPlayerId = socketClient.socket?.id;
         
+        // Set deck style from game settings
+        if (gameState.settings?.deckStyle) {
+            setDeckStyle(gameState.settings.deckStyle);
+        }
+        
         // Exit any rearrange mode
         if (isRearrangeMode) {
             exitRearrangeMode();
@@ -152,8 +157,9 @@ function handleReconnected(result) {
         clearSelection();
         selectedTableCards = [];
         
-        // Render the current state
-        renderGameState();
+        // Show game screen and render the current state
+        showScreen('game-screen');
+        renderGame();
         showToast('Reconnected to game!', 'success');
     }
 }

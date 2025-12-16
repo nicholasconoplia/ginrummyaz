@@ -89,20 +89,57 @@ io.on('connection', (socket) => {
     });
 
     // Join existing lobby
-    socket.on('lobby:join', ({ lobbyCode, playerName }, callback) => {
+    socket.on('lobby:join', ({ lobbyCode, playerName, playerId }, callback) => {
         try {
-            const result = lobbyManager.joinLobby(socket, lobbyCode, playerName);
+            const result = lobbyManager.joinLobby(socket, lobbyCode, playerName, playerId);
             if (result.success) {
-                console.log(`${playerName} joined lobby: ${lobbyCode}`);
-                const publicInfo = lobbyManager.getPublicLobbyInfo(lobbyCode.toUpperCase());
+                const code = lobbyCode.toUpperCase();
+                console.log(`${playerName} ${result.isReconnection ? 'reconnected to' : 'joined'} lobby: ${code}`);
+                const publicInfo = lobbyManager.getPublicLobbyInfo(code);
 
+                // If this is a reconnection and game is in progress, handle game reconnection
+                if (result.isReconnection && publicInfo.status === 'playing') {
+                    // Update game manager with new socket ID
+                    const gameReconnected = gameManager.playerReconnected(
+                        code, 
+                        result.playerId, 
+                        socket.id, 
+                        result.oldSocketId
+                    );
+
+                    if (gameReconnected) {
+                        // Get the current game state for the reconnecting player
+                        const playerView = gameManager.getPlayerView(code, socket.id);
+                        if (playerView) {
+                            console.log(`Player reconnected to active game in ${code}`);
+                            
+                            // Notify all players in lobby about reconnection
+                            io.to(code).emit('lobby:playerJoined', publicInfo);
+                            
+                            callback({
+                                success: true,
+                                playerId: result.playerId,
+                                lobby: publicInfo,
+                                gameState: playerView,
+                                isReconnection: true
+                            });
+                            
+                            // Broadcast updated state to all players
+                            setTimeout(() => broadcastGameState(code), 100);
+                            return;
+                        }
+                    }
+                }
+
+                // Normal join or reconnection to waiting lobby
                 // Notify all players in lobby
-                io.to(lobbyCode.toUpperCase()).emit('lobby:playerJoined', publicInfo);
+                io.to(code).emit('lobby:playerJoined', publicInfo);
 
                 callback({
                     success: true,
                     playerId: result.playerId,
-                    lobby: publicInfo
+                    lobby: publicInfo,
+                    isReconnection: result.isReconnection || false
                 });
             } else {
                 callback(result);
@@ -443,17 +480,33 @@ io.on('connection', (socket) => {
 
         const lobby = lobbyManager.getLobbyBySocket(socket.id);
         if (lobby) {
-            if (lobby.status === 'waiting') {
-                // Remove from lobby if game hasn't started
-                const result = lobbyManager.leaveLobby(socket.id);
-                if (result && result.lobby) {
-                    io.to(result.code).emit('lobby:playerLeft', lobbyManager.getPublicLobbyInfo(result.code));
-                }
-            } else {
-                // Mark as disconnected if game is in progress
-                lobbyManager.playerDisconnected(socket.id);
+            // Mark as disconnected (for both waiting and playing lobbies)
+            // This allows reconnection to work properly
+            lobbyManager.playerDisconnected(socket.id);
+            
+            if (lobby.status === 'playing') {
+                // Also mark in game manager if game is in progress
                 gameManager.playerDisconnected(lobby.code, socket.id);
                 broadcastGameState(lobby.code);
+            } else {
+                // For waiting lobbies, notify other players about disconnection
+                io.to(lobby.code).emit('lobby:playerJoined', lobbyManager.getPublicLobbyInfo(lobby.code));
+                
+                // Set a timeout to remove disconnected players from waiting lobbies after 5 minutes
+                // This prevents abandoned lobbies from persisting forever
+                setTimeout(() => {
+                    const stillLobby = lobbyManager.getLobby(lobby.code);
+                    if (stillLobby) {
+                        const player = stillLobby.players.find(p => p.id === socket.id);
+                        if (player && !player.connected && stillLobby.status === 'waiting') {
+                            // Player still disconnected after timeout, remove them
+                            const result = lobbyManager.leaveLobby(socket.id);
+                            if (result && result.lobby) {
+                                io.to(result.code).emit('lobby:playerLeft', lobbyManager.getPublicLobbyInfo(result.code));
+                            }
+                        }
+                    }
+                }, 5 * 60 * 1000); // 5 minutes
             }
         }
     });
@@ -465,23 +518,30 @@ io.on('connection', (socket) => {
         const result = lobbyManager.reconnectPlayer(socket, lobbyCode, playerId);
         if (result.success) {
             const code = lobbyCode.toUpperCase();
+            const lobby = lobbyManager.getLobby(code);
             const oldSocketId = result.oldSocketId; // Get old socket ID from lobby manager
             
-            // Update game manager with new socket ID
-            gameManager.playerReconnected(code, playerId, socket.id, oldSocketId);
-
-            const playerView = gameManager.getPlayerView(code, socket.id);
-            if (playerView) {
-                console.log(`Player reconnected to active game in ${code}`);
-                callback({ success: true, gameState: playerView });
-                
-                // Broadcast updated state to all players
-                setTimeout(() => broadcastGameState(code), 100);
-            } else {
-                // No active game, just lobby
-                console.log(`Player reconnected to lobby ${code} (no active game)`);
-                callback({ success: true, lobby: lobbyManager.getPublicLobbyInfo(code) });
+            // Notify all players in lobby about reconnection
+            const publicInfo = lobbyManager.getPublicLobbyInfo(code);
+            io.to(code).emit('lobby:playerJoined', publicInfo);
+            
+            // Update game manager with new socket ID if game is active
+            if (lobby && lobby.status === 'playing') {
+                gameManager.playerReconnected(code, playerId, socket.id, oldSocketId);
+                const playerView = gameManager.getPlayerView(code, socket.id);
+                if (playerView) {
+                    console.log(`Player reconnected to active game in ${code}`);
+                    callback({ success: true, gameState: playerView, lobby: publicInfo });
+                    
+                    // Broadcast updated state to all players
+                    setTimeout(() => broadcastGameState(code), 100);
+                    return;
+                }
             }
+            
+            // No active game, just lobby (or game not found)
+            console.log(`Player reconnected to lobby ${code} (no active game)`);
+            callback({ success: true, lobby: publicInfo });
         } else {
             console.log(`Reconnection failed: ${result.error}`);
             callback(result);

@@ -172,8 +172,22 @@ async function handleJoinLobby() {
         const response = await socketClient.joinLobby(code, name);
         currentLobby = response.lobby;
         isHost = false;
-        showWaitingRoom();
-        showToast(`Joined lobby ${code}!`, 'success');
+        
+        // Check if this is a reconnection to an active game
+        if (response.isReconnection && response.gameState) {
+            // Reconnecting to active game - trigger reconnected event for game module
+            showToast(`Reconnecting to game in lobby ${code}...`, 'info');
+            // Emit reconnected event which the game module listens to
+            socketClient.emit('reconnected', { gameState: response.gameState });
+        } else {
+            // Normal join or reconnection to waiting lobby
+            showWaitingRoom();
+            if (response.isReconnection) {
+                showToast(`Reconnected to lobby ${code}!`, 'success');
+            } else {
+                showToast(`Joined lobby ${code}!`, 'success');
+            }
+        }
     } catch (error) {
         showToast(error.message, 'error');
     } finally {

@@ -27,9 +27,16 @@ class SocketClient {
             // If you deploy the frontend and backend to different hosts (e.g. Vercel + Render),
             // set VITE_SERVER_URL in the frontend environment to your backend base URL.
             // Example: https://your-backend.onrender.com
-            const serverUrl = import.meta.env.DEV
-                ? 'http://localhost:3000'
-                : (import.meta.env.VITE_SERVER_URL || window.location.origin);
+            // For local/offline use, always connect to the same origin (server runs on same port)
+            let serverUrl;
+            if (import.meta.env.DEV) {
+                serverUrl = 'http://localhost:3000';
+            } else if (import.meta.env.VITE_SERVER_URL) {
+                serverUrl = import.meta.env.VITE_SERVER_URL;
+            } else {
+                // For local offline use, use the same origin (server serves both frontend and backend)
+                serverUrl = window.location.origin;
+            }
 
             this.socket = io(serverUrl, {
                 transports: ['websocket', 'polling'],
@@ -205,7 +212,9 @@ class SocketClient {
     // Join an existing lobby
     joinLobby(lobbyCode, playerName) {
         return new Promise((resolve, reject) => {
-            this.socket.emit('lobby:join', { lobbyCode, playerName }, (response) => {
+            // Pass persistent playerId if we have one (for reconnection)
+            const playerId = this.playerId || null;
+            this.socket.emit('lobby:join', { lobbyCode, playerName, playerId }, (response) => {
                 if (response.success) {
                     this.playerId = response.playerId;
                     this.lobbyCode = lobbyCode.toUpperCase();

@@ -10,7 +10,9 @@
     "dev:all": "npm run dev:server & npm run dev",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "NODE_ENV=production node server/index.js"
+    "start": "NODE_ENV=production node server/index.js",
+    "start:local": "NODE_ENV=production node server/index.js",
+    "postinstall": "chmod +x start-local.sh 2>/dev/null || true"
   },
   "devDependencies": {
     "vite": "^5.4.18"
